@@ -1,0 +1,324 @@
+function enterStore(){
+ const email=document.getElementById("gateEmail").value.trim();
+ const password=document.getElementById("gatePassword").value;
+ if(!email||!password){alert("Please enter your email/mobile number and password.");return;}
+ localStorage.setItem("as_logged_in","true");
+ localStorage.setItem("as_user",email);
+ document.getElementById("siteLoginGate").style.display="none";
+}
+
+function skipLogin(){
+ document.getElementById("siteLoginGate").style.display="none";
+}
+
+function openLoginFromGate(){
+ const gate=document.getElementById("siteLoginGate");
+ gate.style.display="none";
+ if(typeof openLogin==="function") openLogin();
+ else gate.style.display="flex";
+}
+function showSiteLoginGate(){
+ const gate=document.getElementById("siteLoginGate");
+ if(localStorage.getItem("as_logged_in")==="true") gate.style.display="none";
+ else gate.style.display="flex";
+}
+
+const demo=[
+{id:1,name:"Banarasi Silk Zari Saree",category:"Banarasi",price:3499,original:4999,stock:12,rating:4.2,reviews:186,image:"",desc:"Rich zari work with a classic festive drape."},
+{id:2,name:"Pure Cotton Handloom Saree",category:"Cotton",price:1899,original:2499,stock:20,rating:4.0,reviews:94,image:"",desc:"Lightweight everyday elegance.Handloom Saree (5.5 Meters) accompanied by an attached Unstitched Blouse Piece (0.8 Meter) matching the primary weave texture."},
+{id:3,name:"Designer Wedding Saree",category:"Wedding",price:5999,original:7999,stock:7,rating:4.6,reviews:241,image:"",desc:"Statement drape for weddings and celebrations."},
+{id:4,name:"Kanjivaram Silk Saree",category:"Silk",price:7499,original:9999,stock:5,rating:4.3,reviews:137,image:"",desc:"Traditional silk styling with premium finish."},
+{id:5,name:"Party Wear Organza Saree",category:"Party Wear",price:2899,original:3999,stock:10,rating:4.1,reviews:76,image:"",desc:"Elegant organza texture for evening events."},
+{id:6,name:"Floral Designer Saree",category:"Designer",price:3199,original:4499,stock:15,rating:4.5,reviews:318,image:"",desc:"Modern floral styling with a graceful fall."},
+{id:7,name:"Bridal Red Silk Saree",category:"Wedding",price:8499,original:10999,stock:4,rating:4.7,reviews:205,image:"",desc:"Bold bridal-inspired red with rich detailing."},
+{id:8,name:"Soft Linen Saree",category:"Cotton",price:2199,original:2999,stock:18,rating:4.0,reviews:61,image:"",desc:"Breathable and comfortable for daily wear."},{id:9,gender:"Men",name:"Classic Formal Shirt",category:"Formal Shirts",price:1499,original:2199,stock:16,rating:4.4,reviews:72,image:"",colors:["White","Sky Blue","Black"],desc:"A crisp, comfortable formal shirt for workdays and special occasions."},
+{id:10,gender:"Men",name:"Tailored Formal Pants",category:"Formal Pants",price:1899,original:2699,stock:12,rating:4.3,reviews:54,image:"",colors:["Black","Charcoal","Navy Blue"],desc:"A clean tailored fit with all-day comfort for office and events."},
+{id:11,gender:"Men",name:"Everyday Straight Trousers",category:"Trousers",price:1699,original:2399,stock:14,rating:4.2,reviews:41,image:"",colors:["Khaki","Olive","Navy Blue"],desc:"Versatile straight-fit trousers that pair easily with shirts and tees."},
+{id:12,gender:"Men",name:"Tapered Casual Joggers",category:"Joggers",price:1299,original:1899,stock:18,rating:4.5,reviews:88,image:"",colors:["Black","Grey","Navy Blue"],desc:"Soft stretch joggers with a tapered fit for relaxed everyday wear."},
+{id:13,gender:"Men",name:"Essential Cotton T-Shirt",category:"T-Shirts",price:799,original:1199,stock:24,rating:4.4,reviews:103,image:"",colors:["White","Black","Olive","Maroon"],desc:"A breathable cotton crew-neck tee made for easy daily styling."}
+];
+demo.forEach(p=>{if(!p.gender)p.gender="Women";});
+let products=JSON.parse(localStorage.getItem("as_products")||"null")||[...demo];
+products.forEach(p=>{if(!p.gender)p.gender="Women";});
+const menswearSeedKey="shyn_menswear_seed_v1";
+if(localStorage.getItem(menswearSeedKey)!=="true"){
+ demo.filter(p=>p.gender==="Men").forEach(seed=>{
+   if(!products.some(p=>(p.gender||"Women")==="Men"&&p.name===seed.name)){
+     let id=Number(seed.id);while(products.some(p=>Number(p.id)===id))id++;
+     products.push({...seed,id});
+   }
+ });
+ localStorage.setItem(menswearSeedKey,"true");
+ localStorage.setItem("as_products",JSON.stringify(products));
+}
+let cart=JSON.parse(localStorage.getItem("as_cart")||"[]");
+let selectedGender="Women";
+let filter="All";
+
+
+const demoRatingData={1:[4.2,186],2:[4.0,94],3:[4.6,241],4:[4.3,137],5:[4.1,76],6:[4.5,318],7:[4.7,205],8:[4.0,61]};
+function ensureProductRatings(){
+  products.forEach((p,i)=>{
+    if(typeof p.rating!=="number") p.rating=demoRatingData[p.id]?.[0] ?? [4.0,4.1,4.2,4.3,4.4,4.5,4.6,4.7][i%8];
+    if(typeof p.reviews!=="number") p.reviews=demoRatingData[p.id]?.[1] ?? [67,84,112,139,176,203,247,318][i%8];
+  });
+  localStorage.setItem("as_products",JSON.stringify(products));
+}
+function renderFilters(){const visible=products.filter(p=>(p.gender||"Women")===selectedGender);const categories=["All",...new Set(visible.map(p=>p.category))];if(!categories.includes(filter))filter="All";document.getElementById("filters").innerHTML=categories.map(c=>`<button class="${filter===c?'active':''}" onclick="setFilter('${c}')">${c}</button>`).join("")}
+function setFilter(c){filter=c;renderFilters();renderProducts()}
+function selectCollection(gender){selectedGender=gender==="Men"?"Men":"Women";filter="All";const title=document.getElementById("collectionTitle"),tag=document.getElementById("collectionTag"),intro=document.getElementById("collectionIntro");if(title)title.textContent=selectedGender==="Men"?"Men's Collection":"Women's Saree Collection";if(tag)tag.textContent=selectedGender==="Men"?"MEN'S EDIT":"WOMEN'S EDIT";if(intro)intro.textContent=selectedGender==="Men"?"Everyday essentials and smart styles for every occasion.":"Discover timeless sarees curated by SHYN.";document.querySelectorAll("[data-collection]").forEach(el=>{const active=el.dataset.collection===selectedGender;if(el.tagName==="BUTTON"){el.classList.toggle("active",active);el.setAttribute("aria-pressed",String(active));}});renderFilters();renderProducts()}
+function renderProducts(){const collection=products.filter(p=>(p.gender||"Women")===selectedGender);const list=(filter==="All"?collection:collection.filter(p=>p.category===filter));document.getElementById("products").innerHTML=list.length?list.map(p=>`
+<div class="card"><div class="pic">${p.image?`<img src="${p.image}" alt="${p.name}" onerror="this.style.display='none';this.parentElement.classList.add('image-error');"><span class="image-fallback">SHYN</span>`:'<span>SHYN</span>'}</div>
+<div class="cardbody"><div class="tag">${p.category}</div><div class="name">${p.name}</div><div class="price">₹${p.price.toLocaleString()} <span class="old">₹${(p.original||p.price).toLocaleString()}</span></div>
+<div class="small">${p.stock>0?p.stock+' in stock':'Out of stock'}</div><div class="cardactions"><button class="secondary" onclick="viewProduct(${p.id})">View Details</button><button class="primary" onclick="addCart(${p.id})">Add to Cart</button></div></div></div>`).join(""):"<p class='small'>No products in this collection yet.</p>"}
+function renderAdmin(){document.getElementById("adminRows").innerHTML=products.map(p=>`<tr><td>${p.name}</td><td>${p.category}</td><td>${p.gender||"Women"}</td><td>₹${p.price.toLocaleString()}</td><td>${p.stock}</td><td><button class="secondary" onclick="openEditor(${p.id})">Edit</button> <button class="secondary" onclick="deleteProduct(${p.id})">Delete</button></td></tr>`).join("")}
+function save(){localStorage.setItem("as_products",JSON.stringify(products));renderFilters();renderProducts();renderAdmin()}
+function openEditor(id){
+ document.getElementById("modal").classList.add("open");
+ document.getElementById("pcat").innerHTML=[...new Set([...products.map(p=>p.category),"New Category"])].map(x=>`<option>${x}</option>`).join("");
+ let p=products.find(x=>x.id===id);
+ document.getElementById("modalTitle").textContent=p?"Edit Product":"Add Product";
+ document.getElementById("pid").value=p?.id||"";
+ document.getElementById("pname").value=p?.name||"";
+ document.getElementById("pcat").value=p?.category||products.find(x=>(x.gender||"Women")===selectedGender)?.category||"Silk";
+ document.getElementById("pgender").value=p?.gender||selectedGender;
+ document.getElementById("pprice").value=p?.price||"";
+ document.getElementById("poriginal").value=p?.original||"";
+ document.getElementById("pstock").value=p?.stock??"";
+ document.getElementById("pcolors").value=(p?.colors||[]).join(", ");
+ document.getElementById("pimage").value="";
+ document.getElementById("photoError").textContent="";
+ document.getElementById("pphotos").value="";
+ document.getElementById("pphotos").dataset.existing=JSON.stringify(p?.photos?.length ? p.photos : (p?.image ? [p.image] : []));
+ renderPhotoPreview(getProductPhotos());
+ document.getElementById("pdesc").value=p?.desc||"";
+ document.getElementById("pphotos").value="";
+ document.getElementById("pphotos").dataset.existing=JSON.stringify(p?.photos||[]);
+ renderPhotoPreview(p?.photos||[]);
+}
+function closeEditor(){document.getElementById("modal").classList.remove("open")}
+
+function getProductPhotos(){
+  try { return JSON.parse(document.getElementById("pphotos").dataset.existing||"[]"); }
+  catch(e){ return []; }
+}
+function setProductPhotos(photos){
+  document.getElementById("pphotos").dataset.existing=JSON.stringify(photos);
+  renderPhotoPreview(photos);
+}
+function renderPhotoPreview(photos){
+ const box=document.getElementById("photoPreview");
+ box.innerHTML=(photos||[]).map((src,i)=>`<div class="photo-wrap">
+   <img src="${src}" onerror="this.style.opacity='.35';" title="Product photo ${i+1}">
+   <button type="button" class="photo-remove" onclick="removeProductPhoto(${i})">×</button>
+ </div>`).join("");
+}
+function isValidImageUrl(url){
+ try{
+   const u=new URL(url);
+   if(!/^https?:$/.test(u.protocol)) return false;
+   return true;
+ }catch(e){return false}
+}
+
+function previewImageUrl(){
+ const url=document.getElementById("pimage").value.trim();
+ const error=document.getElementById("photoError");
+ if(!isValidImageUrl(url)){error.textContent="Please paste a direct image URL beginning with http:// or https://";return;}
+ error.textContent="";
+ const img=new Image();
+ img.onload=()=>{error.textContent="✓ Image URL works. Click Add URL or Save Product.";error.style.color="#16833b";};
+ img.onerror=()=>{error.textContent="This URL cannot be loaded as an image. Copy the direct image URL, not the product/webpage URL.";error.style.color="#b21f35";};
+ img.src=url;
+}
+
+function addImageUrl(){
+ const input=document.getElementById("pimage");
+ const error=document.getElementById("photoError");
+ const url=input.value.trim();
+ error.textContent=""; error.style.color="";
+ if(!isValidImageUrl(url)){
+   error.textContent="Please enter a valid image URL starting with https:// or http://";
+   return;
+ }
+ const photos=getProductPhotos();
+ if(!photos.includes(url)) photos.push(url);
+ setProductPhotos(photos);
+ input.value="";
+}
+function removeProductPhoto(index){
+ const photos=getProductPhotos();
+ photos.splice(index,1);
+ setProductPhotos(photos);
+}
+document.getElementById("pphotos").addEventListener("change", async function(){
+ const files=[...this.files];
+ if(!files.length)return;
+ const error=document.getElementById("photoError");
+ error.textContent="";
+ const existing=getProductPhotos();
+ const newPhotos=[];
+ for(const file of files){
+   if(!file.type.startsWith("image/")){
+     error.textContent="Please select image files only.";
+     continue;
+   }
+   const dataUrl=await new Promise((resolve,reject)=>{
+     const reader=new FileReader();
+     reader.onload=()=>resolve(reader.result);
+     reader.onerror=()=>reject(reader.error);
+     reader.readAsDataURL(file);
+   });
+   newPhotos.push(dataUrl);
+ }
+ setProductPhotos([...existing,...newPhotos]);
+});
+
+document.getElementById("productForm").onsubmit=e=>{e.preventDefault();let id=Number(document.getElementById("pid").value);let uploadedPhotos=getProductPhotos();
+let typedUrl=document.getElementById("pimage").value.trim();
+if(typedUrl){
+  if(isValidImageUrl(typedUrl) && !uploadedPhotos.includes(typedUrl)) uploadedPhotos.unshift(typedUrl);
+  else if(!isValidImageUrl(typedUrl)){ document.getElementById("photoError").textContent="Please enter a valid image URL starting with http:// or https://"; return; }
+}
+let colors=pcolors.value.split(",").map(x=>x.trim()).filter(Boolean);
+let p={id:id||Date.now(),gender:pgender.value,name:pname.value,category:pcat.value,price:Number(pprice.value),original:Number(poriginal.value)||Number(pprice.value),stock:Number(pstock.value),colors:colors,image:uploadedPhotos[0]||"",photos:uploadedPhotos,desc:pdesc.value};if(id)products=products.map(x=>x.id===id?p:x);else products.push(p);save();closeEditor()}
+function deleteProduct(id){if(confirm("Delete this product?")){products=products.filter(p=>p.id!==id);save()}}
+function resetProducts(){if(confirm("Reset all demo products?")){products=[...demo];save()}}
+function addCart(id){let p=products.find(x=>x.id===id);if(!p||p.stock<1)return alert("Out of stock");cart.push(id);localStorage.setItem("as_cart",JSON.stringify(cart));document.getElementById("cartCount").textContent=cart.length;alert(p.name+" added to cart.")}
+function renderCart(){
+ let counts={};
+ cart.forEach(id=>counts[id]=(counts[id]||0)+1);
+ const entries=Object.entries(counts);
+ const box=document.getElementById("cartItems");
+ if(!entries.length){box.innerHTML="<p>Your cart is empty.</p>";return;}
+ const total=entries.reduce((sum,[id,n])=>{let p=products.find(x=>x.id==id);return sum+(p?p.price*n:0)},0);
+ box.innerHTML=entries.map(([id,n])=>{
+   let p=products.find(x=>x.id==id);
+   return p?`<div class="cart-item">
+     <div class="cart-thumb" style="${p.image?`background-image:url('${p.image}');background-size:cover;background-position:center`:''}">${p.image?'':'AS'}</div>
+     <div class="cart-info"><b>${p.name}</b><span>₹${p.price.toLocaleString()} × ${n}</span></div>
+     <button class="remove-cart" onclick="removeFromCart(${p.id})">Remove</button>
+   </div>`:"";
+ }).join("")+`<div class="cart-total"><b>Total</b><b>₹${total.toLocaleString()}</b></div>`;
+}
+function showCart(){document.getElementById("cartModal").classList.add("open");renderCart()}
+function removeFromCart(id){
+ const index=cart.indexOf(Number(id));
+ if(index!==-1) cart.splice(index,1);
+ localStorage.setItem("as_cart",JSON.stringify(cart));
+ document.getElementById("cartCount").textContent=cart.length;
+ renderCart();
+}
+function viewProduct(id){
+ let p=products.find(x=>x.id===id); if(!p)return;
+ document.getElementById("detailModal").classList.add("open");
+ document.getElementById("detailContent").innerHTML=`
+ <div class="detail-layout">
+   <div class="detail-gallery">
+     <div id="mainDetailImage" class="main-product-image" style="${(p.photos&&p.photos.length?p.photos[0]:p.image)?`background-image:url('${p.photos&&p.photos.length?p.photos[0]:p.image}');background-size:cover;background-position:center`:''}">
+       ${(p.photos&&p.photos.length)||p.image?'':'SHYN'}
+     </div>
+     <div class="thumbs">
+       ${(p.photos&&p.photos.length?p.photos:[p.image].filter(Boolean)).map((img,i)=>`<div class="thumb detail-photo-thumb ${i===0?'active':''}" style="background-image:url('${img}')" onclick="changeDetailPhoto('${img}',this)"></div>`).join("")}
+     </div>
+   </div>
+   <div class="detail-info">
+     <div class="seller">Visit the <b>SHYN</b> Store</div>
+     <h1>${p.name}</h1>
+     <div class="rating">★ ${Number(p.rating||4.0).toFixed(1)} <span> | ${Number(p.reviews||128).toLocaleString()} ratings</span></div>
+     <div class="line"></div>
+     <div class="deal">-${Math.max(1,Math.round((1-p.price/(p.original||p.price))*100))}%</div>
+     <span class="detail-price">₹${p.price.toLocaleString()}</span>
+     <div class="mrp">M.R.P.: <s>₹${(p.original||p.price).toLocaleString()}</s></div>
+     <div class="tax">Inclusive of all taxes</div>
+     <div class="emi"><b>EMI</b> starts at ₹${Math.ceil(p.price/12)}. No Cost EMI available</div>
+     <h3>Offers</h3>
+     <div class="offer-row">
+       <div class="offer"><b>Cashback</b><p>Up to ₹500 cashback on selected payment methods.</p><a>1 offer ›</a></div>
+       <div class="offer"><b>No Cost EMI</b><p>Save on EMI interest on eligible orders.</p><a>1 offer ›</a></div>
+       <div class="offer"><b>Bank Offer</b><p>Extra discount on selected cards.</p><a>View offers ›</a></div>
+     </div>
+     <div class="benefits">
+       <div>↩<b>10 days</b><span>Return & Exchange</span></div>
+       <div>🚚<b>Free Delivery</b><span>On eligible orders</span></div>
+       <div>📦<b>Fast Delivery</b><span>Across India</span></div>
+       <div>🔒<b>Secure</b><span>transaction</span></div>
+     </div>
+     <div class="selection"><b>Colour:</b> <span id="selectedColour">${(p.colors&&p.colors.length?p.colors[0]:'Navy Blue')}</span></div>
+     <div class="variant-row">
+       ${(p.colors&&p.colors.length?p.colors:['Navy Blue']).map((c,i)=>`<button class="variant ${i===0?'selected':''}" onclick="selectVariant(this)" data-colour="${c.replace(/"/g,'&quot;')}"><span class="swatch color-swatch" style="background:${colourGradient(c)}"></span><small>${c}</small><b>₹${p.price.toLocaleString()}</b></button>`).join('')}
+     </div>
+     <div class="detail-stock">${p.stock>0?'In stock':'Currently unavailable'}</div>
+     <div class="detail-actions">
+       <button class="add-large" onclick="addCart(${p.id});closeDetails()">Add to cart</button>
+       <button class="buy-large" onclick="addCart(${p.id});closeDetails();alert('Buy Now can be connected to your payment gateway.')">Buy Now</button>
+     </div>
+     <button class="wish">♡ Add to Wish List</button>
+     <div class="description"><b>About this item</b><p>${p.desc||'Beautifully crafted saree suitable for festive, wedding and special occasions.'}</p></div>
+   </div>
+ </div>`;
+}
+function changeDetailPhoto(img,el){
+ const main=document.getElementById("mainDetailImage");
+ if(main) main.style.backgroundImage=`url("${img}")`;
+ document.querySelectorAll(".detail-photo-thumb").forEach(x=>x.classList.remove("active"));
+ if(el)el.classList.add("active");
+}
+function colourGradient(name){
+ const n=(name||'').toLowerCase();
+ const map={violet:'#7b287d',purple:'#7b287d',pink:'#d94f70',green:'#17745c',red:'#b3263b',blue:'#2676a8',navy:'#0b1f3a','navy blue':'#0b1f3a',black:'#222',white:'#f4f1eb',yellow:'#e3b523',gold:'#c9a24a',orange:'#e67e22',maroon:'#7b1730',magenta:'#b52b88',peach:'#efad91',cream:'#f2e3c6',beige:'#d7c0a0',teal:'#168b87'};
+ const c=map[n]||'#9b6a78';
+ return `linear-gradient(135deg,${c},#d9b27d)`;
+}
+function selectVariant(el){
+ document.querySelectorAll('.variant').forEach(x=>x.classList.remove('selected'));
+ el.classList.add('selected');
+ const label=document.getElementById('selectedColour');
+ if(label) label.textContent=el.dataset.colour||el.querySelector('small')?.textContent||'';
+}
+function closeDetails(){document.getElementById("detailModal").classList.remove("open")}
+
+function openLogin(){
+ document.getElementById("loginModal").classList.add("open");
+ const logged=localStorage.getItem("as_logged_in")==="true";
+ if(logged){
+   document.getElementById("loginTitle").textContent="Welcome to SHYN";
+   document.getElementById("loginForm").innerHTML=`<p style="text-align:center">You are signed in.</p><button class="login-primary" onclick="logoutUser()">Sign Out</button>`;
+ }
+}
+function closeLogin(){document.getElementById("loginModal").classList.remove("open")}
+function showSignup(){document.getElementById("loginForm").style.display="none";document.getElementById("forgotForm").style.display="none";document.getElementById("signupForm").style.display="block";document.getElementById("loginTitle").textContent="Create Account"}
+function showSignin(){document.getElementById("signupForm").style.display="none";document.getElementById("forgotForm").style.display="none";document.getElementById("loginForm").style.display="block";document.getElementById("loginTitle").textContent="Welcome Back"}
+function showForgot(e){e.preventDefault();document.getElementById("loginForm").style.display="none";document.getElementById("signupForm").style.display="none";document.getElementById("forgotForm").style.display="block";document.getElementById("loginTitle").textContent="Reset Password"}
+function loginUser(){
+ const email=document.getElementById("loginEmail").value.trim(), pass=document.getElementById("loginPassword").value;
+ if(!email||!pass)return alert("Please enter your email/mobile and password.");
+ localStorage.setItem("as_logged_in","true");localStorage.setItem("as_user",email);
+ alert("Signed in successfully.");closeLogin();
+}
+function signupUser(){
+ const name=document.getElementById("signupName").value.trim(), email=document.getElementById("signupEmail").value.trim(), mobile=document.getElementById("signupMobile").value.trim(), pass=document.getElementById("signupPassword").value;
+ if(!name||!email||!mobile||!pass)return alert("Please fill all fields.");
+ localStorage.setItem("as_logged_in","true");localStorage.setItem("as_user",email);
+ alert("Account created successfully.");closeLogin();
+}
+function forgotPassword(){
+ const email=document.getElementById("forgotEmail").value.trim();
+ if(!email)return alert("Please enter your email.");
+ alert("Password reset instructions would be sent to "+email+" in the production version.");
+ showSignin();
+}
+function logoutUser(){
+ localStorage.removeItem("as_logged_in");
+ localStorage.removeItem("as_user");
+ closeLogin();
+ document.getElementById("siteLoginGate").style.display="flex";
+ document.getElementById("gateEmail").value="";
+ document.getElementById("gatePassword").value="";
+ document.getElementById("loginTitle").textContent="Welcome Back";
+ alert("You have been signed out.");
+}
+
+ensureProductRatings();document.getElementById("cartCount").textContent=cart.length;renderFilters();renderProducts();renderAdmin();
+
+showSiteLoginGate();
