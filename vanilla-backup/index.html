@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SHYN — Luxury Ethnic Sarees &amp; Menswear</title>
+  <!-- Google Fonts: Luxury Serif & Modern Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <!-- Razorpay Checkout Library for Payment Integration -->
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- Site Login Gate Modal (Demo Authentication) -->
+  <div id="siteLoginGate" class="site-login-gate theme-midnight">
+    <!-- Interactive Background Canvas (Zari Silk Shimmer & Constellation Mesh) -->
+    <canvas id="gateInteractiveCanvas" class="gate-interactive-canvas"></canvas>
+
+    <!-- Interactive Cursor Spotlight Flashlight -->
+    <div id="gateCursorSpotlight" class="gate-cursor-spotlight" aria-hidden="true"></div>
+
+    <!-- Ambient Floating Aura Orbs for dynamic luxury lighting -->
+    <div class="gate-ambient-glow glow-1" aria-hidden="true"></div>
+    <div class="gate-ambient-glow glow-2" aria-hidden="true"></div>
+    <div class="gate-pattern-overlay" aria-hidden="true"></div>
+
+    <div class="site-login-card">
+      <!-- Interactive Background Hint -->
+      <div class="gate-interactive-hint">
+        <span>✨ Move cursor &amp; click background to weave golden zari embers</span>
+      </div>
+
+      <!-- Luxury Crest Header -->
+      <div class="gate-royal-crest" aria-hidden="true">
+        <span class="crest-line"></span>
+        <span class="crest-gem">✦ ❖ ✦</span>
+        <span class="crest-line"></span>
+      </div>
+
+      <div class="site-login-logo brand-lockup brand-lockup--center" aria-label="SHYN">
+        <span class="brand-mark" aria-hidden="true"><span>S</span></span>
+        <span class="brand-name">SHYN</span>
+      </div>
+      <div class="site-login-eyebrow">HAUTE COUTURE &amp; HERITAGE ATELIER</div>
+      <h1>Sign in to enter the store</h1>
+      <p>Explore royal Banarasi sarees, curated menswear, track your deliveries and enjoy exclusive member offers.</p>
+
+      <!-- 1-Click Quick Demo Login Chips -->
+      <div class="demo-login-chips">
+        <span class="demo-chips-label">⚡ 1-Click Quick Demo Login (Viva Examiner):</span>
+        <div class="demo-chips-row">
+          <button type="button" class="demo-chip-btn" onclick="quickFillGate('customer')">👤 Customer (Aditi)</button>
+          <button type="button" class="demo-chip-btn" onclick="quickFillGate('admin')">🛡️ Store Admin</button>
+        </div>
+      </div>
+
+      <div class="gate-form-fields">
+        <div class="gate-input-group">
+          <span class="input-icon">✉️</span>
+          <input id="gateEmail" type="text" placeholder="Email or mobile number (e.g. aditi@shyn.in)">
+        </div>
+        <div class="password-input-wrap">
+          <span class="input-icon">🔒</span>
+          <input id="gatePassword" type="password" placeholder="Password (e.g. shyn2026)">
+          <button type="button" class="pwd-toggle-btn" onclick="togglePasswordVisibility('gatePassword', this)" title="Show/Hide password">👁️</button>
+        </div>
+      </div>
+
+      <button class="site-login-btn" onclick="enterStore()">
+        <span>Enter Boutique Store</span>
+        <span class="btn-arrow">→</span>
+      </button>
+      <button class="site-create-btn" onclick="openLoginFromGate()">Create New Account</button>
+      <button class="site-skip-btn" onclick="skipLogin()">Skip for now (Browse as Guest) →</button>
+      <div class="site-login-demo">🔒 256-bit Encrypted Client-Side State • Seamless Offline Access</div>
+    </div>
+  </div>
+
+  <!-- Announcement Bar -->
+  <div class="top">
+    ✨ FESTIVE EDIT: GET 10% OFF WITH CODE <b>SHYN10</b> • FREE SHIPPING ON ₹1,000+ • 📞 HELPLINE: <a href="tel:+9118002027496" style="color: #fff; font-weight: 700; text-decoration: underline;">1800-202-7496</a> • <a href="javascript:void(0)" onclick="openAssistanceModal()" style="color: #ffd700; font-weight: 700; text-decoration: underline;">Customer Assistance ▾</a>
+  </div>
+
+  <!-- Navigation Bar -->
+  <nav class="nav">
+    <a href="#home" class="logo brand-lockup" aria-label="SHYN">
+      <span class="brand-mark" aria-hidden="true"><span>S</span></span>
+      <span class="brand-name">SHYN</span>
+    </a>
+
+    <div class="nav-links">
+      <a href="#home">Home</a>
+      <a href="#collections">Collections</a>
+      <a href="#shop">Shop</a>
+      <a href="#admin">Store Admin</a>
+      <a href="javascript:void(0)" onclick="openAssistanceModal()" class="nav-assist-link" style="color: var(--maroon); font-weight: 700;">🎧 Assistance</a>
+    </div>
+
+    <div class="nav-actions">
+      <!-- Account Dropdown Button -->
+      <button id="accountBtn" class="account-btn" onclick="openAccountMenu()">
+        <span id="accountGreeting">👤 Account</span>
+        <span id="accountLabel">Sign in ▾</span>
+      </button>
+
+      <!-- Wishlist Button -->
+      <button class="iconbtn" onclick="openWishlist()" title="View Wishlist">
+        ♡ <span style="display: none; sm-inline;">Wishlist</span> (<span id="wishCount" class="badge-count">0</span>)
+      </button>
+
+      <!-- Cart Button -->
+      <button class="iconbtn" onclick="showCart()" title="View Shopping Cart">
+        🛒 Cart (<span id="cartCount" class="badge-count">0</span>)
+      </button>
+    </div>
+  </nav>
+
+  <!-- Account Dropdown Menu -->
+  <div id="accountMenu" class="account-menu">
+    <div class="account-menu-head">
+      <b id="menuName">Welcome</b>
+      <span id="menuEmail">guest@shyn.in</span>
+    </div>
+    <button onclick="openOrdersModal()">📦 Your Orders &amp; Receipts</button>
+    <button onclick="openWishlist(); closeAccountMenu();">♡ Your Saved Wishlist</button>
+    <button id="menuAdminLink" onclick="document.getElementById('admin')?.scrollIntoView({behavior: 'smooth'}); closeAccountMenu();" style="display: none; color: var(--maroon); font-weight: 700; background: #fffdf9;">🛡️ Store Admin CMS (Manage Catalog)</button>
+    <button onclick="openLogin(); closeAccountMenu();">⚙️ Sign In / Switch Account</button>
+    <button onclick="logoutUser(); closeAccountMenu();" style="color: var(--danger);">🚪 Sign Out</button>
+  </div>
+
+  <!-- Hero Section -->
+  <section class="hero" id="home">
+    <div>
+      <div class="eyebrow">Elegance • Heritage • Modern Style</div>
+      <h1>Style for Every Moment</h1>
+      <p>From opulent Banarasi &amp; Kanjivaram sarees to crisp executive formalwear, discover curated Indian luxury designed for every celebration.</p>
+      <a href="#collections"><button class="primary" style="padding: 14px 28px; font-size: 16px;">Explore Collections ↓</button></a>
+    </div>
+  </section>
+
+  <!-- Shop by Collection Cards -->
+  <section class="audience-section" id="collections" aria-labelledby="audienceTitle">
+    <div class="audience-heading">
+      <div class="tag">THE SHYN EDIT</div>
+      <h2 id="audienceTitle">Shop by Signature Collection</h2>
+      <p>Find the perfect drape and tailored silhouette for every occasion.</p>
+    </div>
+    <div class="audience-grid">
+      <a class="audience-card women-card" data-collection="Women" href="#shop" onclick="selectCollection('Women')">
+        <span class="audience-kicker">01 / WOMEN</span>
+        <h3>Women's Saree Collection</h3>
+        <p>Explore royal silk, wedding handlooms, organza party wear, and breathable cotton sarees.</p>
+        <span class="audience-cta">Shop Women's Sarees →</span>
+      </a>
+      <a class="audience-card men-card" data-collection="Men" href="#shop" onclick="selectCollection('Men')">
+        <span class="audience-kicker">02 / MEN</span>
+        <h3>Men's Sartorial Collection</h3>
+        <p>Explore executive formal shirts, tailored trousers, stretch chinos, and casual cotton staples.</p>
+        <span class="audience-cta">Explore Men's Wear →</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- Main Shop & Catalog Section -->
+  <section class="section" id="shop">
+    <div class="sectionhead">
+      <div>
+        <div class="tag" id="collectionTag">WOMEN'S EDIT</div>
+        <h2 id="collectionTitle">Women's Royal Saree Collection</h2>
+        <p id="collectionIntro" style="color: var(--muted); margin: 6px 0 0;">Discover timeless silk, handloom, and bridal sarees curated by SHYN.</p>
+      </div>
+
+      <!-- Collection Switcher Pill -->
+      <div class="collection-switch" role="group" aria-label="Choose a collection">
+        <button type="button" class="active" data-collection="Women" aria-pressed="true" onclick="selectCollection('Women')">Women's Sarees</button>
+        <button type="button" data-collection="Men" aria-pressed="false" onclick="selectCollection('Men')">Men's Wear</button>
+      </div>
+    </div>
+
+    <!-- Live Search, Filter & Sort Toolbar -->
+    <div class="shop-toolbar">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Search by name, fabric, category (e.g. Silk, Cotton, Shirt)..." oninput="handleSearch(this.value)">
+        <button id="searchClear" class="search-clear" onclick="clearSearch()" style="display: none;" title="Clear search">✕</button>
+      </div>
+
+      <div class="sort-filter-group">
+        <label for="sortSelect" style="font-size: 13px; font-weight: 600; color: #555;">Sort By:</label>
+        <select id="sortSelect" class="sort-select" onchange="handleSort(this.value)">
+          <option value="featured">Featured Picks</option>
+          <option value="price-asc">Price: Low to High</option>
+          <option value="price-desc">Price: High to Low</option>
+          <option value="rating-desc">Customer Rating (High to Low)</option>
+          <option value="name-asc">Alphabetical (A to Z)</option>
+        </select>
+
+        <label class="checkbox-label">
+          <input type="checkbox" id="inStockOnly" onchange="toggleInStock(this.checked)">
+          <span>In Stock Only</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Category Filter Buttons -->
+    <div class="filters" id="filters"></div>
+
+    <!-- Product Grid -->
+    <div class="grid" id="products"></div>
+  </section>
+
+  <!-- Store Admin Panel -->
+  <section class="admin" id="admin">
+    <h2>Store Admin CMS</h2>
+    <p>In-browser Inventory Management — Add, edit, upload photos, and update product pricing in real-time.</p>
+    <div class="adminbar">
+      <button class="primary" onclick="openEditor()">＋ Add New Product</button>
+      <button class="secondary" onclick="exportCatalogJson()">📥 Export Catalog (JSON)</button>
+      <button class="secondary" onclick="document.getElementById('importCatalogInput').click()">📤 Import Catalog</button>
+      <input type="file" id="importCatalogInput" accept=".json" style="display:none;" onchange="importCatalogJson(event)">
+      <button class="secondary" onclick="resetProducts()">↺ Reset Demo Products</button>
+    </div>
+    <div class="panel">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Category</th>
+            <th>Collection</th>
+            <th>Price</th>
+            <th>Stock</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="adminRows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-brand-col">
+      <h3 class="brand-lockup brand-lockup--footer" aria-label="SHYN">
+        <span class="brand-mark" aria-hidden="true"><span>S</span></span>
+        <span class="brand-name">SHYN</span>
+      </h3>
+      <p>Luxury ethnic wear &amp; sartorial menswear curated for timeless elegance. Authentic Banarasi, Kanjivaram silk sarees and executive menswear tailored to perfection.</p>
+      <div class="footer-badges">
+        <span class="f-badge">✨ Handloom Certified</span>
+        <span class="f-badge">🔒 256-bit Secure Gateway</span>
+      </div>
+      <p style="font-size: 12px; color: #888; margin-top: 14px;">© 2026 SHYN Fashion Pvt. Ltd. All rights reserved. Academic Minor Project.</p>
+    </div>
+
+    <!-- Enhanced Customer Assistance Column -->
+    <div class="footer-assistance-col">
+      <b class="footer-col-title">Customer Assistance</b>
+      <p class="footer-col-sub">Dedicated support for drape consultation, sizing, orders &amp; inquiries.</p>
+      
+      <div class="assistance-quick-contacts">
+        <!-- Phone Options -->
+        <a href="tel:+9118002027496" class="footer-contact-item" title="Call Toll-Free Helpline">
+          <span class="contact-icon">📞</span>
+          <div>
+            <div class="contact-lbl">Helpline (Toll-Free)</div>
+            <div class="contact-val">1800-202-7496</div>
+          </div>
+        </a>
+
+        <a href="https://wa.me/919876543210?text=Hi%20SHYN%20Customer%20Assistance%2C%20I%20need%20help%20with%20an%20order." target="_blank" rel="noopener" class="footer-contact-item whatsapp-item" title="Chat on WhatsApp">
+          <span class="contact-icon">💬</span>
+          <div>
+            <div class="contact-lbl">WhatsApp Concierge</div>
+            <div class="contact-val">+91 98765 43210</div>
+          </div>
+        </a>
+
+        <!-- Mail Options -->
+        <a href="mailto:care@shyn.in" class="footer-contact-item" title="Email Customer Care">
+          <span class="contact-icon">✉️</span>
+          <div>
+            <div class="contact-lbl">Email Support</div>
+            <div class="contact-val">care@shyn.in</div>
+          </div>
+        </a>
+
+        <div class="footer-timing-note">
+          <span>🕒 Mon – Sat: 9:30 AM – 7:30 PM IST (Prompt response)</span>
+        </div>
+      </div>
+
+      <!-- Quick Action Assistance Pills -->
+      <div class="footer-assistance-links">
+        <button type="button" class="footer-action-pill highlight" onclick="openAssistanceModal()">
+          <span>🎧 Help Center &amp; FAQs</span>
+        </button>
+        <button type="button" class="footer-action-pill" onclick="openOrdersModal()">
+          <span>📦 Track Order</span>
+        </button>
+        <button type="button" class="footer-action-pill" onclick="openReturnsModal()">
+          <span>↩ 7-Day Returns</span>
+        </button>
+        <button type="button" class="footer-action-pill" onclick="openSizeGuideModal()">
+          <span>📏 Saree &amp; Size Guide</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Boutique Atelier & Payments Column -->
+    <div class="footer-store-col">
+      <b class="footer-col-title">Flagship Boutique &amp; Payments</b>
+      <div class="footer-store-loc">
+        <span style="font-size: 18px;">📍</span>
+        <div>
+          <b>SHYN Heritage Atelier</b><br>
+          <span style="font-size: 12.5px; color: #aaa;">42 Regal Chambers, Connaught Place,<br>New Delhi - 110001 • Landmark: Metro Gate 2</span>
+        </div>
+      </div>
+      <div style="margin-top: 14px;">
+        <b class="footer-col-title" style="font-size: 12px; margin-bottom: 6px;">Accepted Payments</b>
+        <div class="payment-badges-row">
+          <span class="pay-chip">💳 UPI / QR</span>
+          <span class="pay-chip">⚡ Razorpay</span>
+          <span class="pay-chip">💳 Cards</span>
+          <span class="pay-chip">🏛️ NetBanking</span>
+          <span class="pay-chip">💵 Cash on Delivery</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ==================== MODALS ==================== -->
+
+  <!-- Add/Edit Product Admin Modal -->
+  <div class="modal" id="modal">
+    <div class="modalbox">
+      <button class="close" onclick="closeEditor()">×</button>
+      <h2 id="modalTitle" style="margin-top: 0;">Add Product</h2>
+      <form id="productForm" class="formgrid">
+        <input type="hidden" id="pid">
+        <div>
+          <label>Product Name</label>
+          <input id="pname" required placeholder="e.g. Kanjivaram Pure Silk Saree">
+        </div>
+        <div>
+          <label>Category</label>
+          <select id="pcat"></select>
+        </div>
+        <div>
+          <label>Collection</label>
+          <select id="pgender">
+            <option value="Women">Women</option>
+            <option value="Men">Men</option>
+          </select>
+        </div>
+        <div>
+          <label>Selling Price (₹)</label>
+          <input id="pprice" type="number" required placeholder="3499">
+        </div>
+        <div>
+          <label>Original M.R.P. (₹)</label>
+          <input id="poriginal" type="number" placeholder="4999">
+        </div>
+        <div>
+          <label>Stock Quantity</label>
+          <input id="pstock" type="number" required placeholder="10">
+        </div>
+        <div class="full">
+          <label>Available Color Variants (comma-separated)</label>
+          <input id="pcolors" placeholder="Maroon, Royal Blue, Gold, Indigo">
+        </div>
+        <div class="full photo-upload">
+          <label><b>Product Image URL &amp; File Upload</b></label>
+          <div class="photo-url-row">
+            <input id="pimage" type="url" placeholder="Paste direct image URL (https://...)">
+            <button type="button" class="secondary" onclick="addImageUrl()">Add URL</button>
+            <button type="button" class="secondary" onclick="previewImageUrl()">Verify</button>
+          </div>
+          <div class="small">Upload image from device or paste high-res Unsplash/direct URLs.</div>
+          <input id="pphotos" type="file" accept="image/*" multiple>
+          <div id="photoPreview" class="photo-preview"></div>
+          <div id="photoError" class="small photo-error"></div>
+        </div>
+        <div class="full">
+          <label>Product Description</label>
+          <textarea id="pdesc" placeholder="Fabric weave, drape details, occasion..."></textarea>
+        </div>
+        <div class="full">
+          <button class="primary" type="submit" style="width: 100%; padding: 12px; font-weight: 700;">Save Product to Store</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Product Detail Modal -->
+  <div class="modal" id="detailModal" onclick="if(event.target===this)closeDetails()">
+    <div class="detail-modal-box">
+      <button class="close" onclick="closeDetails()" title="Close details">✕</button>
+      <div id="detailContent"></div>
+    </div>
+  </div>
+
+  <!-- Wishlist Drawer / Modal -->
+  <div class="modal" id="wishlistModal">
+    <div class="modalbox wishlist-box">
+      <button class="close" onclick="closeWishlist()">×</button>
+      <h2 style="margin: 0 0 14px; font-family: Georgia, serif; color: var(--maroon);">Your Saved Wishlist</h2>
+      <div id="wishlistItems"></div>
+    </div>
+  </div>
+
+  <!-- Shopping Cart Modal -->
+  <div class="modal" id="cartModal">
+    <div class="modalbox cart-box">
+      <button class="close" onclick="closeCart()">×</button>
+      <h2 style="margin: 0 0 16px; font-family: Georgia, serif; color: var(--maroon);">Shopping Cart</h2>
+      <div id="cartItems"></div>
+    </div>
+  </div>
+
+  <!-- Checkout Modal (COD + Online Payment) -->
+  <div class="modal" id="checkoutModal">
+    <div class="modalbox checkout-box">
+      <button class="close" onclick="closeCheckout()">×</button>
+      <h2 style="margin: 0 0 6px; font-family: Georgia, serif; color: var(--maroon);">Secure Checkout</h2>
+      <p style="font-size: 13px; color: var(--muted); margin: 0 0 14px;">Complete your delivery address and choose a payment method.</p>
+
+      <!-- Order Summary in Checkout -->
+      <div id="checkoutOrderSummary"></div>
+
+      <!-- Shipping Information -->
+      <div class="form-group">
+        <label>Full Recipient Name *</label>
+        <input id="checkoutName" placeholder="e.g. Aditi Sharma" required>
+      </div>
+      <div class="form-group">
+        <label>Mobile Number (for delivery tracking SMS) *</label>
+        <input id="checkoutPhone" type="tel" placeholder="e.g. 9876543210" required>
+      </div>
+      <div class="form-group">
+        <label>Delivery Address *</label>
+        <textarea id="checkoutAddress" rows="2" placeholder="House/Flat No., Apartment, Street, Landmark" required></textarea>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div class="form-group">
+          <label>City</label>
+          <input id="checkoutCity" placeholder="e.g. New Delhi">
+        </div>
+        <div class="form-group">
+          <label>Pincode</label>
+          <input id="checkoutPincode" placeholder="e.g. 110001">
+        </div>
+      </div>
+
+      <!-- Payment Method Selection -->
+      <label style="font-size: 13px; font-weight: 700; margin-top: 10px; display: block;">Select Payment Mode:</label>
+      <div class="payment-methods">
+        <div class="payment-option active" data-method="online" onclick="setPaymentMethod('online')">
+          <b>💳 Pay Online</b>
+          <span>Razorpay / UPI / Cards / Net Banking</span>
+        </div>
+        <div class="payment-option" data-method="cod" onclick="setPaymentMethod('cod')">
+          <b>💵 Cash on Delivery</b>
+          <span>Pay in cash at delivery doorstep</span>
+        </div>
+      </div>
+
+      <button id="checkoutSubmitBtn" class="primary" style="width: 100%; padding: 14px; font-size: 16px; font-weight: 700; margin-top: 10px;" onclick="startPayment()">
+        Pay Now &amp; Confirm Order
+      </button>
+      <div class="small" style="text-align: center; margin-top: 10px; color: #888;">
+        🔒 256-bit Encrypted SSL Payment • Instant Tax Invoice Generation
+      </div>
+    </div>
+  </div>
+
+  <!-- Order Confirmation & Printable Invoice Modal -->
+  <div class="modal" id="invoiceModal">
+    <div class="modalbox invoice-modal-box">
+      <button class="close" onclick="closeInvoice()">×</button>
+      <div id="invoiceContent"></div>
+    </div>
+  </div>
+
+  <!-- Order History Modal ("Your Orders") -->
+  <div class="modal" id="ordersModal">
+    <div class="modalbox" style="max-width: 620px;">
+      <button class="close" onclick="closeOrdersModal()">×</button>
+      <h2 style="margin: 0 0 16px; font-family: Georgia, serif; color: var(--maroon);">Your Order History</h2>
+      <div id="ordersList"></div>
+    </div>
+  </div>
+
+  <!-- Authentication Modal (Sign In / Sign Up / Forgot Password) -->
+  <div class="modal" id="loginModal">
+    <div class="login-box">
+      <button class="close" onclick="closeLogin()">×</button>
+      <div class="gate-royal-crest" aria-hidden="true">
+        <span class="crest-line"></span>
+        <span class="crest-gem">✦ ❖ ✦</span>
+        <span class="crest-line"></span>
+      </div>
+      <div class="login-brand brand-lockup brand-lockup--center" aria-label="SHYN">
+        <span class="brand-mark" aria-hidden="true"><span>S</span></span>
+        <span class="brand-name">SHYN</span>
+      </div>
+      <h1 id="loginTitle">Welcome Back</h1>
+      <p class="login-subtitle">Sign in to manage your account, orders and wishlist.</p>
+
+      <!-- Sign In Form -->
+      <div id="loginForm">
+        <!-- 1-Click Quick Demo Login Chips -->
+        <div class="demo-login-chips">
+          <span class="demo-chips-label">⚡ 1-Click Instant Demo Login:</span>
+          <div class="demo-chips-row">
+            <button type="button" class="demo-chip-btn" onclick="quickFillModal('customer')">👤 Customer (Aditi)</button>
+            <button type="button" class="demo-chip-btn" onclick="quickFillModal('admin')">🛡️ Store Admin</button>
+          </div>
+        </div>
+
+        <label>Email or Mobile Number</label>
+        <input id="loginEmail" type="text" placeholder="Enter email or mobile (e.g. aditi@shyn.in)">
+        <label>Password</label>
+        <div class="password-input-wrap">
+          <input id="loginPassword" type="password" placeholder="Enter password (e.g. shyn2026)">
+          <button type="button" class="pwd-toggle-btn" onclick="togglePasswordVisibility('loginPassword', this)" title="Show/Hide password">👁️</button>
+        </div>
+        <div class="login-row">
+          <label class="remember"><input type="checkbox" id="rememberMe"> Remember me</label>
+          <a href="#" onclick="showForgot(event)" style="color: var(--maroon); font-weight: 600;">Forgot password?</a>
+        </div>
+        <button class="login-primary" onclick="loginUser()">Sign In</button>
+        <div class="login-divider"><span>or</span></div>
+        <button class="login-secondary" onclick="showSignup()">Create New Account</button>
+        <p class="login-note">Minor project demo. Connects to client-side auth state &amp; active order history.</p>
+      </div>
+
+      <!-- Sign Up Form -->
+      <div id="signupForm" style="display: none;">
+        <label>Full Name</label>
+        <input id="signupName" type="text" placeholder="e.g. Aditi Sharma">
+        <label>Email Address</label>
+        <input id="signupEmail" type="email" placeholder="e.g. aditi@example.com">
+        <label>Mobile Number</label>
+        <input id="signupMobile" type="tel" placeholder="e.g. 9876543210">
+        <label>Password</label>
+        <div class="password-input-wrap">
+          <input id="signupPassword" type="password" placeholder="Create a secure password">
+          <button type="button" class="pwd-toggle-btn" onclick="togglePasswordVisibility('signupPassword', this)" title="Show/Hide password">👁️</button>
+        </div>
+        <button class="login-primary" onclick="signupUser()">Create Account</button>
+        <button class="login-secondary" onclick="showSignin()">Back to Sign In</button>
+      </div>
+
+      <!-- Forgot Password Form -->
+      <div id="forgotForm" style="display: none;">
+        <label>Registered Email Address</label>
+        <input id="forgotEmail" type="email" placeholder="Enter your email">
+        <button class="login-primary" onclick="forgotPassword()">Send Reset Link</button>
+        <button class="login-secondary" onclick="showSignin()">Back to Sign In</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== CUSTOMER ASSISTANCE & HELP DESK MODAL ==================== -->
+  <div class="modal" id="assistanceModal" onclick="if(event.target===this)closeAssistanceModal()">
+    <div class="modalbox assistance-modal-box">
+      <button class="close" onclick="closeAssistanceModal()" title="Close Customer Assistance">✕</button>
+      
+      <div class="assistance-modal-head">
+        <div class="assistance-modal-kicker">✨ SHYN CONCIERGE &amp; CLIENT SERVICES</div>
+        <h2 class="assistance-modal-title">Customer Assistance &amp; Help Desk</h2>
+        <p class="assistance-modal-sub">How can we assist you today? Reach out directly via Phone, WhatsApp, or Email, or use our instant self-service tools below.</p>
+      </div>
+
+      <!-- 3 Primary Direct Contact Channels -->
+      <div class="assistance-channels-grid">
+        <!-- Channel 1: Phone Helpline -->
+        <div class="assist-channel-card">
+          <div class="channel-icon-wrap phone-icon">📞</div>
+          <div class="channel-info">
+            <span class="channel-tag">PHONE SUPPORT</span>
+            <div class="channel-main-val">1800-202-7496</div>
+            <div class="channel-sub-val">Direct: +91 98765 43210</div>
+            <div class="channel-hours">Mon–Sat: 9:30 AM – 7:30 PM IST</div>
+          </div>
+          <div class="channel-actions">
+            <a href="tel:+9118002027496" class="assist-cta-btn primary-call">
+              <span>📞</span> Call Toll-Free
+            </a>
+          </div>
+        </div>
+
+        <!-- Channel 2: WhatsApp Concierge -->
+        <div class="assist-channel-card">
+          <div class="channel-icon-wrap whatsapp-icon">💬</div>
+          <div class="channel-info">
+            <span class="channel-tag" style="color: #128c7e;">WHATSAPP CONCIERGE</span>
+            <div class="channel-main-val">+91 98765 43210</div>
+            <div class="channel-sub-val">Instant Drape &amp; Styling Chat</div>
+            <div class="channel-hours">Avg. Response Time: 5 Minutes</div>
+          </div>
+          <div class="channel-actions">
+            <a href="https://wa.me/919876543210?text=Hello%20SHYN%20Customer%20Assistance%2C%20I%20need%20help%20with%20an%20order%20or%20product%20inquiry." target="_blank" rel="noopener" class="assist-cta-btn whatsapp-call">
+              <span>💬</span> Chat on WhatsApp
+            </a>
+          </div>
+        </div>
+
+        <!-- Channel 3: Email Support -->
+        <div class="assist-channel-card">
+          <div class="channel-icon-wrap email-icon">✉️</div>
+          <div class="channel-info">
+            <span class="channel-tag">EMAIL CARE</span>
+            <div class="channel-main-val">care@shyn.in</div>
+            <div class="channel-sub-val">Bespoke: atelier@shyn.in</div>
+            <div class="channel-hours">Guaranteed Reply within 2–4 Hours</div>
+          </div>
+          <div class="channel-actions">
+            <a href="mailto:care@shyn.in?subject=Customer%20Assistance%20Inquiry%20-%20SHYN" class="assist-cta-btn email-call">
+              <span>✉️</span> Send Email
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Self-Service Action Hub -->
+      <div class="assist-section-title">⚡ Instant Self-Service Options</div>
+      <div class="assist-quick-hub">
+        <button type="button" class="assist-hub-card" onclick="closeAssistanceModal(); openOrdersModal();">
+          <span class="hub-icon">📦</span>
+          <div class="hub-text">
+            <b>Track My Orders</b>
+            <small>Live BlueDart tracking &amp; invoice download</small>
+          </div>
+          <span class="hub-arrow">→</span>
+        </button>
+
+        <button type="button" class="assist-hub-card" onclick="openReturnsModal();">
+          <span class="hub-icon">↩</span>
+          <div class="hub-text">
+            <b>7-Day Easy Returns</b>
+            <small>Schedule doorstep reverse pickup</small>
+          </div>
+          <span class="hub-arrow">→</span>
+        </button>
+
+        <button type="button" class="assist-hub-card" onclick="openSizeGuideModal();">
+          <span class="hub-icon">📏</span>
+          <div class="hub-text">
+            <b>Size &amp; Draping Guide</b>
+            <small>5.5m saree fall, pico &amp; menswear fit chart</small>
+          </div>
+          <span class="hub-arrow">→</span>
+        </button>
+
+        <button type="button" class="assist-hub-card" onclick="closeAssistanceModal(); toggleChatbot();">
+          <span class="hub-icon">✨</span>
+          <div class="hub-text">
+            <b>Ask AI Stylist</b>
+            <small>Instant advice on fabric, colors &amp; festive look</small>
+          </div>
+          <span class="hub-arrow">→</span>
+        </button>
+      </div>
+
+      <!-- Submit a Support Ticket Form -->
+      <div class="assist-section-title" style="margin-top: 24px;">✍️ Submit an Assistance Ticket</div>
+      <form class="assist-ticket-form" onsubmit="submitAssistanceTicket(event)">
+        <div class="assist-form-row">
+          <div>
+            <label>Full Name *</label>
+            <input id="assistName" required placeholder="e.g. Aditi Sharma">
+          </div>
+          <div>
+            <label>Mobile Number *</label>
+            <input id="assistPhone" type="tel" required placeholder="e.g. +91 98765 43210">
+          </div>
+        </div>
+        <div class="assist-form-row">
+          <div>
+            <label>Email Address *</label>
+            <input id="assistEmail" type="email" required placeholder="e.g. aditi@example.com">
+          </div>
+          <div>
+            <label>Assistance Topic *</label>
+            <select id="assistTopic" required>
+              <option value="Order Tracking & Delivery Status">📦 Order Tracking &amp; Delivery Status</option>
+              <option value="Return / Exchange Request">↩ Return / Exchange Request</option>
+              <option value="Saree Fabric & Zari Authenticity">🧵 Saree Fabric &amp; Zari Authenticity</option>
+              <option value="Menswear Sizing & Fit Consultation">👔 Menswear Sizing &amp; Fit Consultation</option>
+              <option value="Payment / COD / Refund Query">💳 Payment / COD / Refund Query</option>
+              <option value="Custom Atelier & Bridal Inquiry">✨ Custom Atelier &amp; Bridal Inquiry</option>
+              <option value="Other Assistance">❓ Other Assistance</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label>Your Message / Query *</label>
+          <textarea id="assistMessage" rows="3" required placeholder="Describe your inquiry or order issue in detail..."></textarea>
+        </div>
+        <button type="submit" class="assist-submit-btn">
+          <span>📨 Submit Assistance Request</span>
+        </button>
+      </form>
+
+      <!-- Frequently Asked Questions Accordion -->
+      <div class="assist-section-title" style="margin-top: 24px;">❓ Frequently Asked Questions (FAQ)</div>
+      <div class="assist-faq-list">
+        <div class="assist-faq-item">
+          <div class="assist-faq-q" onclick="toggleFaq(this)">
+            <span>How do I track my delivery in real-time?</span>
+            <span class="faq-icon">▾</span>
+          </div>
+          <div class="assist-faq-a">
+            Click on <b>"Track My Orders"</b> at any time. You can view real-time updates through Confirmed ➔ Quality Checked ➔ Dispatched via BlueDart Express (with live tracking AWB) ➔ Out for Delivery ➔ Delivered.
+          </div>
+        </div>
+
+        <div class="assist-faq-item">
+          <div class="assist-faq-q" onclick="toggleFaq(this)">
+            <span>What is SHYN's 7-Day Doorstep Return &amp; Exchange Policy?</span>
+            <span class="faq-icon">▾</span>
+          </div>
+          <div class="assist-faq-a">
+            We provide hassle-free 7-day doorstep returns and exchanges. As long as items are unworn and tags remain intact, our logistics partner will arrange pickup right from your doorstep at zero charge.
+          </div>
+        </div>
+
+        <div class="assist-faq-item">
+          <div class="assist-faq-q" onclick="toggleFaq(this)">
+            <span>Are SHYN sarees certified pure handloom with blouse piece included?</span>
+            <span class="faq-icon">▾</span>
+          </div>
+          <div class="assist-faq-a">
+            Yes! All sarees are Handloom Certified with authentic zari work. Each saree measures standard 5.5 meters with finished fall &amp; pico edges, plus an attached 0.8 meter matching unstitched blouse piece.
+          </div>
+        </div>
+
+        <div class="assist-faq-item">
+          <div class="assist-faq-q" onclick="toggleFaq(this)">
+            <span>What payment methods are supported?</span>
+            <span class="faq-icon">▾</span>
+          </div>
+          <div class="assist-faq-a">
+            We support <b>Cash on Delivery (COD)</b> with free shipping on orders above ₹1,000, as well as <b>Instant Online Payment</b> via UPI (Google Pay, PhonePe, Paytm), Credit &amp; Debit Cards, and Net Banking.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== 7-DAY DOORSTEP RETURN & EXCHANGE MODAL ==================== -->
+  <div class="modal" id="returnsModal" onclick="if(event.target===this)closeReturnsModal()">
+    <div class="modalbox" style="max-width: 580px;">
+      <button class="close" onclick="closeReturnsModal()">✕</button>
+      <div style="font-size: 11px; font-weight: 700; color: var(--gold); letter-spacing: 1px; text-transform: uppercase;">SHYN ASSURANCE</div>
+      <h2 style="margin: 4px 0 8px; color: var(--maroon);">7-Day Doorstep Return &amp; Exchange</h2>
+      <p style="font-size: 13px; color: var(--muted); margin: 0 0 16px;">We stand behind the craftsmanship of every weave. Schedule your reverse pickup in seconds.</p>
+
+      <form onsubmit="submitReturnRequest(event)">
+        <div style="margin-bottom: 12px;">
+          <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Order ID *</label>
+          <input id="returnOrderId" required placeholder="e.g. SHYN-2026-12345" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+        </div>
+
+        <div style="margin-bottom: 12px;">
+          <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Select Action *</label>
+          <select id="returnActionType" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+            <option value="Exchange for Different Color Variant">🔄 Exchange for Different Color Variant</option>
+            <option value="Exchange for Different Size">🔄 Exchange for Different Size</option>
+            <option value="Full Refund to Original Payment / Bank Account">💰 Full Refund to Original Payment / Bank Account</option>
+            <option value="Store Credit Voucher (Extra 5% Bonus)">🎁 Store Credit Voucher (+5% Bonus)</option>
+          </select>
+        </div>
+
+        <div style="margin-bottom: 12px;">
+          <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Reason for Return / Exchange *</label>
+          <select id="returnReason" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+            <option value="Wanted different color variant">Wanted different color variant</option>
+            <option value="Size or blouse fit issue">Size or blouse fit issue</option>
+            <option value="Fabric texture different than expected">Fabric texture different than expected</option>
+            <option value="Received damaged or defective piece">Received damaged or defective piece</option>
+            <option value="Order arrived too late for occasion">Order arrived too late for occasion</option>
+            <option value="Other reason">Other reason</option>
+          </select>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Doorstep Pickup Address *</label>
+          <textarea id="returnPickupAddress" rows="2" required placeholder="House/Flat No., Street, City, State, PIN code..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;"></textarea>
+        </div>
+
+        <div style="background: #eef8f1; border: 1px solid #c2e6cc; border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #2e7d32; margin-bottom: 16px;">
+          ✓ <b>Zero Reverse Shipping Fee:</b> BlueDart courier will collect the package from your doorstep within 24–48 hours.
+        </div>
+
+        <button type="submit" class="primary" style="width: 100%; padding: 12px; font-weight: 700;">
+          Schedule Doorstep Reverse Pickup →
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== SIZE & DRAPING GUIDE MODAL ==================== -->
+  <div class="modal" id="sizeGuideModal" onclick="if(event.target===this)closeSizeGuideModal()">
+    <div class="modalbox" style="max-width: 660px;">
+      <button class="close" onclick="closeSizeGuideModal()">✕</button>
+      <div style="font-size: 11px; font-weight: 700; color: var(--gold); letter-spacing: 1px; text-transform: uppercase;">ATELIER CRAFTSMANSHIP</div>
+      <h2 style="margin: 4px 0 8px; color: var(--maroon);">Saree Specifications &amp; Size Guide</h2>
+      <p style="font-size: 13px; color: var(--muted); margin: 0 0 16px;">Detailed sizing, drape lengths and measurement charts for our collections.</p>
+
+      <!-- Tab Buttons -->
+      <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+        <button type="button" id="tabSareeBtn" class="primary" style="padding: 8px 16px; font-size: 13px;" onclick="showSizeTab('saree')">👗 Sarees &amp; Blouse</button>
+        <button type="button" id="tabMenBtn" class="secondary" style="padding: 8px 16px; font-size: 13px;" onclick="showSizeTab('men')">👔 Menswear Sizing</button>
+      </div>
+
+      <!-- Saree Tab Content -->
+      <div id="sizeTabSaree">
+        <div style="background: #fdfaf6; border: 1px solid #ebdccb; border-radius: 12px; padding: 16px; margin-bottom: 14px;">
+          <h4 style="margin: 0 0 8px; color: var(--maroon);">📐 Standard Saree Dimensions</h4>
+          <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #444; line-height: 1.6;">
+            <li><b>Saree Length:</b> 5.5 Meters (Full traditional drape length with generous pleats).</li>
+            <li><b>Saree Width:</b> 44–45 Inches (Standard universal drape height).</li>
+            <li><b>Blouse Fabric:</b> 0.8 Meter unstitched matching piece included at the inner end.</li>
+            <li><b>Edges &amp; Fall:</b> Pre-finished with traditional fall and pico hem for ready drape.</li>
+          </ul>
+        </div>
+
+        <h4 style="margin: 14px 0 8px; color: var(--ink);">🪡 Recommended Blouse Sizing (Inches)</h4>
+        <div style="overflow-x: auto;">
+          <table class="table" style="font-size: 12.5px; margin-top: 0;">
+            <thead>
+              <tr style="background: #fbf5ef;">
+                <th>Standard Size</th>
+                <th>Bust (Inches)</th>
+                <th>Underbust</th>
+                <th>Waist</th>
+                <th>Shoulder</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><b>34 (XS)</b></td><td>34"</td><td>28"</td><td>26"</td><td>13.5"</td></tr>
+              <tr><td><b>36 (S)</b></td><td>36"</td><td>30"</td><td>28"</td><td>14.0"</td></tr>
+              <tr><td><b>38 (M)</b></td><td>38"</td><td>32"</td><td>30"</td><td>14.5"</td></tr>
+              <tr><td><b>40 (L)</b></td><td>40"</td><td>34"</td><td>32"</td><td>15.0"</td></tr>
+              <tr><td><b>42 (XL)</b></td><td>42"</td><td>36"</td><td>34"</td><td>15.5"</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Men Tab Content -->
+      <div id="sizeTabMen" style="display: none;">
+        <div style="background: #fdfaf6; border: 1px solid #ebdccb; border-radius: 12px; padding: 16px; margin-bottom: 14px;">
+          <h4 style="margin: 0 0 8px; color: var(--maroon);">👔 Executive Menswear Sizing Guide</h4>
+          <p style="margin: 0; font-size: 13px; color: #555;">All SHYN shirts and trousers are crafted with modern slim-tailored silhouettes with flexible ease.</p>
+        </div>
+
+        <h4 style="margin: 14px 0 8px; color: var(--ink);">Shirts &amp; Trousers Measurement Matrix</h4>
+        <div style="overflow-x: auto;">
+          <table class="table" style="font-size: 12.5px; margin-top: 0;">
+            <thead>
+              <tr style="background: #fbf5ef;">
+                <th>Size</th>
+                <th>Chest (Inches)</th>
+                <th>Waist (Pants)</th>
+                <th>Collar</th>
+                <th>Shirt Length</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><b>38 (S)</b></td><td>38"–39"</td><td>30"–31"</td><td>15.0"</td><td>29.0"</td></tr>
+              <tr><td><b>40 (M)</b></td><td>40"–41"</td><td>32"–33"</td><td>15.5"</td><td>29.5"</td></tr>
+              <tr><td><b>42 (L)</b></td><td>42"–43"</td><td>34"–35"</td><td>16.0"</td><td>30.0"</td></tr>
+              <tr><td><b>44 (XL)</b></td><td>44"–45"</td><td>36"–37"</td><td>16.5"</td><td>30.5"</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== FLOATING AI CHATBOT ==================== -->
+  <!-- Floating Chatbot Trigger Button -->
+  <button id="chatbotToggleBtn" class="chatbot-toggle-btn" onclick="toggleChatbot()" title="Chat with SHYN AI Assistant">
+    <span class="chatbot-sparkle">✨</span>
+    <span>Ask SHYN Assistant</span>
+  </button>
+
+  <!-- Chatbot Window -->
+  <div id="chatbotWindow" class="chatbot-window" aria-label="SHYN AI Shopping Assistant">
+    <div class="chatbot-header">
+      <div class="chatbot-header-info">
+        <div class="chatbot-avatar">S</div>
+        <div>
+          <div class="chatbot-title">SHYN AI Stylist</div>
+          <div class="chatbot-status">
+            <span class="status-dot"></span> Online • Instant Answers
+          </div>
+        </div>
+      </div>
+      <button class="chatbot-close-btn" onclick="toggleChatbot()" title="Close chat">✕</button>
+    </div>
+
+    <!-- Messages Container -->
+    <div id="chatMessages" class="chatbot-messages"></div>
+
+    <!-- Input Bar -->
+    <form class="chatbot-input-bar" onsubmit="handleChatSubmit(event)">
+      <input id="chatInput" type="text" placeholder="Ask for sarees, shirts, coupons, orders..." autocomplete="off">
+      <button type="submit" class="chatbot-send-btn" title="Send message">➤</button>
+    </form>
+  </div>
+
+  <!-- Mobile Bottom App Bar (Smartphone PWA Navigation) -->
+  <nav class="mobile-bottom-bar" aria-label="Mobile Navigation">
+    <button class="mobile-nav-item active" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+      <span class="mobile-nav-icon">🏠</span>
+      <span>Home</span>
+    </button>
+    <button class="mobile-nav-item" onclick="selectCollection('Women'); document.getElementById('shop')?.scrollIntoView({behavior: 'smooth'})">
+      <span class="mobile-nav-icon">👗</span>
+      <span>Sarees</span>
+    </button>
+    <button class="mobile-nav-item" onclick="selectCollection('Men'); document.getElementById('shop')?.scrollIntoView({behavior: 'smooth'})">
+      <span class="mobile-nav-icon">👔</span>
+      <span>Men's</span>
+    </button>
+    <button class="mobile-nav-item" onclick="openWishlist()">
+      <span class="mobile-nav-icon">♡</span>
+      <span>Wishlist (<b id="mobileWishCount">0</b>)</span>
+    </button>
+    <button class="mobile-nav-item" onclick="showCart()">
+      <span class="mobile-nav-icon">🛒</span>
+      <span>Bag (<b id="mobileCartCount">0</b>)</span>
+    </button>
+  </nav>
+
+  <!-- Core Script File -->
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,8 +1,14 @@
-const express = require("express");
-const path = require("path");
-const crypto = require("crypto");
-const Razorpay = require("razorpay");
-require("dotenv").config();
+import express from "express";
+import path from "path";
+import { fileURLToPath } from "url";
+import crypto from "crypto";
+import Razorpay from "razorpay";
+import dotenv from "dotenv";
+
+dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -19,7 +25,7 @@ const razorpay = (KEY_ID && KEY_SECRET)
   : null;
 
 app.use(express.json({ limit: "1mb" }));
-app.use(express.static(__dirname));
+app.use(express.static(path.join(__dirname, "dist")));
 
 app.post("/api/create-order", async (req, res) => {
   try {
@@ -39,7 +45,7 @@ app.post("/api/create-order", async (req, res) => {
     const order = await razorpay.orders.create({
       amount: numericAmount,
       currency: "INR",
-      receipt: `AS_${Date.now()}`,
+      receipt: `SHYN_${Date.now()}`,
       notes: {
         product_id: String(productId),
         product_name: String(productName).slice(0, 200),
@@ -85,7 +91,6 @@ app.post("/api/verify-payment", async (req, res) => {
 
     if (!valid) return res.status(400).json({ error: "Invalid payment signature." });
 
-    // In a production store, save the verified order to a database here.
     res.json({
       success: true,
       message: "Payment verified successfully.",
@@ -98,6 +103,11 @@ app.post("/api/verify-payment", async (req, res) => {
   }
 });
 
+// Fallback to React Single Page App
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "dist", "index.html"));
+});
+
 app.listen(PORT, () => {
-  console.log(`AS Collection is running at http://localhost:${PORT}`);
+  console.log(`SHYN Haute Couture Store is running at http://localhost:${PORT}`);
 });
