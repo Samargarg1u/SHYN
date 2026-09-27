@@ -10,6 +10,7 @@ import {
   Search, 
   ShieldCheck, 
   Check, 
+  CheckCircle2,
   AlertTriangle,
   Sparkles,
   Layers,
@@ -19,10 +20,15 @@ import {
   TrendingUp,
   BarChart3,
   Printer,
-  RefreshCw
+  RefreshCw,
+  MailCheck,
+  Send,
+  Mail
 } from 'lucide-react';
 import { INITIAL_PRODUCTS, CATEGORIES_BY_GENDER } from '../data/products';
 import { printTaxInvoice } from '../utils/invoiceGenerator';
+import { sendOrderConfirmationEmail, getSentEmailForOrder, generateOrderEmailHtml } from '../services/emailService';
+import EmailPreviewModal from './EmailPreviewModal';
 
 export default function AdminPanel({
   isOpen,
@@ -36,12 +42,24 @@ export default function AdminPanel({
   if (!isOpen) return null;
 
   const [adminTab, setAdminTab] = useState(initialTab); // 'inventory' | 'analytics'
+  const [previewEmail, setPreviewEmail] = useState(null);
+  const [smtpStatus, setSmtpStatus] = useState({ configured: false, user: 'samargarg019@gmail.com' });
+  const [smtpPassInput, setSmtpPassInput] = useState('');
+  const [smtpTesting, setSmtpTesting] = useState(false);
+  const [smtpMsg, setSmtpMsg] = useState({ type: '', text: '' });
 
   useEffect(() => {
     if (initialTab) {
       setAdminTab(initialTab);
     }
   }, [initialTab, isOpen]);
+
+  useEffect(() => {
+    fetch('http://localhost:3000/api/email-status')
+      .then(res => res.json())
+      .then(data => setSmtpStatus(data))
+      .catch(() => {});
+  }, [adminTab]);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterGender, setFilterGender] = useState('All');
@@ -112,6 +130,81 @@ export default function AdminPanel({
       return p;
     });
     onUpdateProducts(updated);
+  };
+
+  // Automated Email Resend Handler
+  const handleResendEmail = async (order) => {
+    try {
+      const res = await sendOrderConfirmationEmail(order);
+      alert(`Automated order confirmation email successfully re-dispatched to ${res.customerEmail}!`);
+    } catch (err) {
+      alert(`Could not dispatch email: ${err.message}`);
+    }
+  };
+
+  // Open Outbox Email Preview Modal
+  const handleOpenEmailPreview = (order) => {
+    const existing = getSentEmailForOrder(order.id);
+    if (existing) {
+      setPreviewEmail(existing);
+    } else {
+      const customerEmail = order.shippingAddress?.email || order.customer?.email || 'customer@heritage.in';
+      const customerName = order.shippingAddress?.name || order.customer?.name || 'Valued Patron';
+      setPreviewEmail({
+        orderId: order.id,
+        to: customerEmail,
+        recipientName: customerName,
+        subject: `👑 Order Confirmed: ${order.id} | SHYN Haute Couture Atelier`,
+        html: generateOrderEmailHtml(order),
+        sentAt: order.date || new Date().toISOString()
+      });
+    }
+  };
+
+  // Save Gmail App Password & Connect
+  const handleSaveSmtp = async (e) => {
+    e.preventDefault();
+    if (!smtpPassInput.trim()) return;
+    try {
+      const res = await fetch('http://localhost:3000/api/save-smtp-config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user: 'samargarg019@gmail.com', pass: smtpPassInput.trim() })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSmtpStatus(prev => ({ ...prev, configured: true }));
+        setSmtpMsg({ type: 'success', text: 'Gmail App Password saved! Now test sending below.' });
+        setSmtpPassInput('');
+      } else {
+        setSmtpMsg({ type: 'error', text: data.error || 'Failed to save.' });
+      }
+    } catch (err) {
+      setSmtpMsg({ type: 'error', text: 'Make sure server is running: ' + err.message });
+    }
+  };
+
+  // Test Real Email Dispatch
+  const handleTestEmail = async () => {
+    setSmtpTesting(true);
+    setSmtpMsg({ type: 'info', text: 'Transmitting real test email to samargarg019@gmail.com via smtp.gmail.com:587...' });
+    try {
+      const res = await fetch('http://localhost:3000/api/test-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to: 'samargarg019@gmail.com' })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSmtpMsg({ type: 'success', text: `✓ ${data.message}` });
+      } else {
+        setSmtpMsg({ type: 'error', text: `✕ ${data.error}` });
+      }
+    } catch (err) {
+      setSmtpMsg({ type: 'error', text: `Connection error: ${err.message}. Ensure node server.js is running.` });
+    } finally {
+      setSmtpTesting(false);
+    }
   };
 
   // Open Edit Form for a product
@@ -588,6 +681,86 @@ export default function AdminPanel({
           </div>
         </div>
 
+        {/* Real Customer Email Push Engine (Gmail SMTP) */}
+        <div className="analytics-card-section smtp-config-card mb-6">
+          <div className="analytics-section-header">
+            <div className="header-with-badge">
+              <MailCheck size={18} className="text-maroon inline mr-2" />
+              <h3>Automated Customer Email Push Engine (Real Gmail SMTP)</h3>
+            </div>
+            <span className={`smtp-badge ${smtpStatus.configured ? 'smtp-badge-active' : 'smtp-badge-simulated'}`}>
+              {smtpStatus.configured ? '● Real Live Delivery Active' : '○ Simulated Mode (Enter App Password for Real Delivery)'}
+            </span>
+          </div>
+
+          <div className="smtp-card-body">
+            <div className="smtp-explainer">
+              <p className="smtp-explainer-text">
+                Whenever a customer places an order, the system instantly triggers an automated royal HTML confirmation email with invoice details &amp; BlueDart tracking.
+                To deliver emails directly to real Gmail inboxes from <strong>samargarg019@gmail.com</strong> across the internet, enter your 16-character Google App Password below:
+              </p>
+              <div className="smtp-guide-step">
+                <span>
+                  <strong>Google Security Requirement:</strong> Go to{' '}
+                  <a
+                    href="https://myaccount.google.com/apppasswords"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="smtp-link"
+                  >
+                    Google Account &gt; Security &gt; 2-Step Verification &gt; App Passwords ↗
+                  </a>{' '}
+                  &rarr; Name it <em>"SHYN Store"</em> &rarr; Copy the 16-letter code &amp; paste it here.
+                </span>
+              </div>
+            </div>
+
+            <form onSubmit={handleSaveSmtp} className="smtp-form-row">
+              <div className="smtp-input-wrap">
+                <input
+                  type="password"
+                  placeholder="Paste 16-character Google App Password (e.g. abcd efgh ijkl mnop)"
+                  value={smtpPassInput}
+                  onChange={(e) => setSmtpPassInput(e.target.value)}
+                  className="smtp-input"
+                />
+              </div>
+              <button type="submit" className="smtp-save-btn">
+                <CheckCircle2 size={16} />
+                Save &amp; Connect
+              </button>
+              <button
+                type="button"
+                onClick={handleTestEmail}
+                disabled={smtpTesting}
+                className="smtp-test-btn"
+                title="Send a real test email to samargarg019@gmail.com to verify delivery"
+              >
+                {smtpTesting ? (
+                  <>
+                    <RefreshCw size={15} className="animate-spin" />
+                    Sending Test...
+                  </>
+                ) : (
+                  <>
+                    <Send size={15} />
+                    ⚡ Send Test Email to My Gmail
+                  </>
+                )}
+              </button>
+            </form>
+
+            {smtpMsg.text && (
+              <div className={`smtp-msg-alert smtp-msg-${smtpMsg.type}`}>
+                {smtpMsg.type === 'success' && <CheckCircle2 size={16} className="inline mr-1 text-green" />}
+                {smtpMsg.type === 'error' && <AlertTriangle size={16} className="inline mr-1 text-red" />}
+                {smtpMsg.type === 'info' && <RefreshCw size={16} className="inline mr-1 animate-spin" />}
+                <span>{smtpMsg.text}</span>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Section 1: Critical Low Stock Alerts with 1-Click Restock */}
         <div className="analytics-card-section mb-6">
           <div className="analytics-section-header">
@@ -651,6 +824,7 @@ export default function AdminPanel({
                     <th>Items</th>
                     <th>Payment Mode</th>
                     <th>Grand Total</th>
+                    <th>Automated Email</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
@@ -659,6 +833,7 @@ export default function AdminPanel({
                     const orderId = String(ord?.id || `ORD-${idx + 1}`);
                     const orderDate = ord?.date || 'Recent';
                     const customerName = ord?.shippingAddress?.name || ord?.customer?.name || (typeof ord?.customer === 'string' ? ord.customer : 'Patron');
+                    const customerEmail = ord?.shippingAddress?.email || ord?.customer?.email || 'customer@heritage.in';
                     const city = ord?.shippingAddress?.city || ord?.customer?.city || '';
                     const state = ord?.shippingAddress?.state || ord?.customer?.state || '';
                     const customerLoc = [city, state].filter(Boolean).join(', ') || 'India';
@@ -689,15 +864,48 @@ export default function AdminPanel({
                           <strong className="text-gold">₹{totalAmount.toLocaleString('en-IN')}</strong>
                         </td>
                         <td>
-                          <button
-                            type="button"
-                            className="admin-invoice-download-btn"
-                            onClick={() => printTaxInvoice(ord)}
-                            title="Download / Print Official Tax Invoice"
-                          >
-                            <Printer size={14} className="text-gold" />
-                            <span>Invoice (PDF)</span>
-                          </button>
+                          <div className="admin-email-cell">
+                            <span className="admin-email-status-pill">
+                              <CheckCircle2 size={12} className="inline mr-1 text-green" />
+                              <span>Pushed</span>
+                            </span>
+                            <span className="admin-email-addr" title={customerEmail}>
+                              {customerEmail}
+                            </span>
+                            <button
+                              type="button"
+                              className="admin-resend-email-btn"
+                              onClick={() => handleResendEmail(ord)}
+                              title="Re-push automated confirmation email"
+                            >
+                              <Send size={10} />
+                              <span>Resend</span>
+                            </button>
+                          </div>
+                        </td>
+                        <td>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                            <button
+                              type="button"
+                              className="admin-invoice-download-btn"
+                              onClick={() => printTaxInvoice(ord)}
+                              title="Download / Print Official Tax Invoice"
+                            >
+                              <Printer size={14} className="text-gold" />
+                              <span>Invoice (PDF)</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              className="admin-invoice-download-btn"
+                              onClick={() => handleOpenEmailPreview(ord)}
+                              title="View Dispatched Email Outbox Copy"
+                              style={{ background: '#f0f5fc', color: '#144191', borderColor: '#cadbf2' }}
+                            >
+                              <MailCheck size={14} className="text-gold" />
+                              <span>View Email</span>
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );
@@ -1050,6 +1258,13 @@ export default function AdminPanel({
           </div>
         )}
       </div>
+
+      {/* Outbox Email Preview Modal */}
+      <EmailPreviewModal
+        isOpen={Boolean(previewEmail)}
+        onClose={() => setPreviewEmail(null)}
+        emailData={previewEmail}
+      />
     </div>
   );
 }

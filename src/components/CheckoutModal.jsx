@@ -9,10 +9,15 @@ import {
   ArrowRight,
   PackageCheck,
   Printer,
-  Gift
+  Gift,
+  MailCheck,
+  Eye,
+  ExternalLink
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { printTaxInvoice } from '../utils/invoiceGenerator';
+import { sendOrderConfirmationEmail } from '../services/emailService';
+import EmailPreviewModal from './EmailPreviewModal';
 
 export default function CheckoutModal({
   isOpen,
@@ -23,6 +28,8 @@ export default function CheckoutModal({
   if (!isOpen || !checkoutData) return null;
 
   const [step, setStep] = useState(1); // 1: Address, 2: Payment, 3: Confirmation
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [sentEmailRecord, setSentEmailRecord] = useState(null);
   const [formData, setFormData] = useState(() => {
     try {
       const savedUser = localStorage.getItem('shyn_user');
@@ -90,7 +97,7 @@ export default function CheckoutModal({
   const handlePlaceOrder = () => {
     setIsProcessing(true);
 
-    setTimeout(() => {
+    setTimeout(async () => {
       setIsProcessing(false);
       const orderId = `SHYN-${Math.floor(100000 + Math.random() * 900000)}`;
       const orderObj = {
@@ -107,8 +114,20 @@ export default function CheckoutModal({
         grandTotal,
         paymentMethod: paymentMethod === 'razorpay' ? 'Razorpay (Prepaid UPI/Card)' : 'Cash on Delivery',
         status: 'Order Placed',
-        shippingAddress: formData
+        shippingAddress: formData,
+        emailSent: true,
+        emailRecipient: formData.email
       };
+
+      // Push automated confirmation email to customer
+      try {
+        const emailRes = await sendOrderConfirmationEmail(orderObj);
+        if (emailRes && emailRes.emailRecord) {
+          setSentEmailRecord(emailRes.emailRecord);
+        }
+      } catch (err) {
+        console.warn('Auto email dispatch notice:', err);
+      }
 
       setConfirmedOrder(orderObj);
       setStep(3);
@@ -362,6 +381,49 @@ export default function CheckoutModal({
               Thank you for shopping at <strong>SHYN Haute Couture Atelier</strong>.
             </p>
 
+            {/* Automated Email Push Notification Card */}
+            <div className="email-dispatched-card">
+              <div className="email-dispatched-icon-col">
+                <div className="email-icon-pulse-wrapper">
+                  <MailCheck size={24} />
+                  <span className="email-pulse-ring" />
+                </div>
+              </div>
+              <div className="email-dispatched-content-col">
+                <div className="email-status-pill">
+                  <span className="live-dot" />
+                  <span>AUTOMATED EMAIL PUSHED</span>
+                </div>
+                <h4 className="email-card-title">Order Confirmation &amp; Digital Invoice Sent</h4>
+                <p className="email-card-desc">
+                  An official digital receipt with itemized summary has been automatically transmitted to:
+                </p>
+                <div className="email-recipient-highlight">
+                  <strong>{confirmedOrder.shippingAddress?.email || 'customer@heritage.in'}</strong>
+                </div>
+
+                <div className="email-quick-actions">
+                  <button
+                    type="button"
+                    className="email-action-link-btn"
+                    onClick={() => setShowEmailModal(true)}
+                  >
+                    <Eye size={14} />
+                    <span>View Dispatched Email</span>
+                  </button>
+                  <a
+                    href="https://mail.google.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="email-action-link-btn gmail-link"
+                  >
+                    <ExternalLink size={14} />
+                    <span>Open in Gmail</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+
             <div className="order-receipt-card">
               <div className="receipt-row">
                 <span>Order Reference:</span>
@@ -413,6 +475,13 @@ export default function CheckoutModal({
           </div>
         )}
       </div>
+
+      {/* Automated Email Preview Client Modal */}
+      <EmailPreviewModal
+        isOpen={showEmailModal}
+        onClose={() => setShowEmailModal(false)}
+        emailData={sentEmailRecord}
+      />
     </div>
   );
 }

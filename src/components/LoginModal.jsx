@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { X, User, Shield, ArrowRight } from 'lucide-react';
+import { X, User, ArrowRight } from 'lucide-react';
+import { authenticateUser, registerUser } from '../services/authService';
 
 export default function LoginModal({ isOpen, onClose, onLogin }) {
   if (!isOpen) return null;
@@ -8,95 +9,36 @@ export default function LoginModal({ isOpen, onClose, onLogin }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
 
-  // Persistent registered customer from localStorage
-  const [savedCustomer, setSavedCustomer] = useState(() => {
-    try {
-      const saved = localStorage.getItem('shyn_registered_customer');
-      if (saved) return JSON.parse(saved);
-    } catch {
-      // fallback
-    }
-    return null;
-  });
-
-  // Re-read latest customer whenever modal opens
+  // Clear errors when modal opens or toggles
   React.useEffect(() => {
     if (isOpen) {
-      try {
-        const saved = localStorage.getItem('shyn_registered_customer');
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          setSavedCustomer(parsed);
-          setEmail(parsed.email || '');
-          setPassword(parsed.password || '');
-        }
-      } catch {
-        // fallback
-      }
+      setErrorMsg('');
     }
-  }, [isOpen]);
-
-  const handleQuick = (role) => {
-    if (role === 'customer') {
-      if (savedCustomer) {
-        onLogin({
-          email: savedCustomer.email,
-          name: savedCustomer.name,
-          isAdmin: false,
-          role: 'customer'
-        });
-        onClose();
-      } else {
-        setIsRegister(true);
-      }
-    } else {
-      onLogin({
-        email: 'admin@shyn.atelier',
-        name: 'Store Administrator',
-        isAdmin: true,
-        role: 'admin'
-      });
-      onClose();
-    }
-  };
+  }, [isOpen, isRegister]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!email.trim() || !password.trim()) return;
+    setErrorMsg('');
 
-    const isAdmin = email.toLowerCase().includes('admin');
-    const trimmedEmail = email.trim();
-    const displayName = isRegister
-      ? name.trim() || 'Valued Customer'
-      : (isAdmin
-          ? 'Store Administrator'
-          : (savedCustomer && trimmedEmail.toLowerCase() === (savedCustomer.email || '').toLowerCase()
-              ? savedCustomer.name
-              : trimmedEmail.split('@')[0]));
-
-    // Store registered customer
-    if (!isAdmin) {
-      const custData = {
-        name: displayName,
-        email: trimmedEmail,
-        password: password.trim()
-      };
-      setSavedCustomer(custData);
-      try {
-        localStorage.setItem('shyn_registered_customer', JSON.stringify(custData));
-      } catch (err) {
-        console.warn('Could not store customer in localStorage:', err);
+    if (isRegister) {
+      const res = registerUser(name, email, password);
+      if (!res.success) {
+        setErrorMsg(res.error);
+        return;
       }
+      onLogin(res.user);
+      onClose();
+    } else {
+      const res = authenticateUser(email, password);
+      if (!res.success) {
+        setErrorMsg(res.error);
+        return;
+      }
+      onLogin(res.user);
+      onClose();
     }
-
-    onLogin({
-      email: trimmedEmail,
-      name: displayName,
-      isAdmin,
-      role: isAdmin ? 'admin' : 'customer'
-    });
-    onClose();
   };
 
   return (
@@ -112,30 +54,11 @@ export default function LoginModal({ isOpen, onClose, onLogin }) {
           </button>
         </div>
 
-        {/* 1-Click Quick Login */}
-        <div className="demo-login-chips mb-4">
-          <span className="demo-chips-label">⚡ 1-Click Quick Login:</span>
-          <div className="demo-chips-row">
-            <button
-              type="button"
-              className={`demo-chip-btn ${savedCustomer?.name ? 'active-custom-customer' : ''}`}
-              onClick={() => handleQuick('customer')}
-              title={savedCustomer?.name ? `Sign in as ${savedCustomer.name}` : 'Customer Sign In'}
-            >
-              <User size={13} className="inline mr-1 text-gold" />
-              <span>Customer{savedCustomer?.name ? ` (${savedCustomer.name.split(' ')[0]})` : ''}</span>
-            </button>
-            <button
-              type="button"
-              className="demo-chip-btn"
-              onClick={() => handleQuick('admin')}
-              title="Sign in as Store Admin"
-            >
-              <Shield size={13} className="inline mr-1 text-gold" />
-              <span>Store Admin</span>
-            </button>
+        {errorMsg && (
+          <div className="login-error-banner" role="alert">
+            {errorMsg}
           </div>
-        </div>
+        )}
 
         <form onSubmit={handleSubmit} className="auth-form-body">
           {isRegister && (
@@ -155,7 +78,7 @@ export default function LoginModal({ isOpen, onClose, onLogin }) {
             <label>Email Address *</label>
             <input
               type="email"
-              placeholder="e.g. customer@heritage.in"
+              placeholder={isRegister ? "e.g. priya.sharma@gmail.com" : "Enter registered email"}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -166,11 +89,21 @@ export default function LoginModal({ isOpen, onClose, onLogin }) {
             <label>Password *</label>
             <input
               type="password"
-              placeholder="Enter password"
+              placeholder={isRegister ? "At least 12 chars & 1 uppercase" : "Enter password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
+            {isRegister && (
+              <div className="pwd-requirement-hints">
+                <span className={`pwd-hint-item ${password.length >= 12 ? 'hint-valid' : ''}`}>
+                  {password.length >= 12 ? '✓' : '○'} At least 12 characters
+                </span>
+                <span className={`pwd-hint-item ${/[A-Z]/.test(password) ? 'hint-valid' : ''}`}>
+                  {/[A-Z]/.test(password) ? '✓' : '○'} At least 1 uppercase letter (A-Z)
+                </span>
+              </div>
+            )}
           </div>
 
           <button type="submit" className="checkout-primary-btn w-full">

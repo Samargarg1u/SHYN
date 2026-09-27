@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Sparkles, Shield, User, ArrowRight, Eye, EyeOff, UserPlus } from 'lucide-react';
+import { Sparkles, User, ArrowRight, Eye, EyeOff, UserPlus } from 'lucide-react';
+import { authenticateUser, registerUser } from '../services/authService';
 
 const SAPPHIRE_PALETTE = ['#d4af37', '#8bb4f8', '#c2e0ff', '#f5d77f', '#ffffff'];
 
@@ -27,15 +28,13 @@ export default function SiteLoginGate({ onLogin, onGuestEnter }) {
     return null;
   });
 
-  // Populate credentials from saved customer on load
+  // Check for saved registered customer profile on load
   useEffect(() => {
     try {
       const saved = localStorage.getItem('shyn_registered_customer');
       if (saved) {
         const parsed = JSON.parse(saved);
         setSavedCustomer(parsed);
-        setEmail(parsed.email || '');
-        setPassword(parsed.password || '');
       }
     } catch {
       // fallback
@@ -202,76 +201,25 @@ export default function SiteLoginGate({ onLogin, onGuestEnter }) {
     cardRef.current.style.transform = 'perspective(1100px) rotateX(0deg) rotateY(0deg) translateY(0px)';
   };
 
-  const handleQuickFill = (role) => {
-    if (role === 'customer') {
-      if (savedCustomer) {
-        setEmail(savedCustomer.email || '');
-        setPassword(savedCustomer.password || '');
-        if (isRegister) {
-          setFullName(savedCustomer.name || '');
-        }
-      } else {
-        setIsRegister(true);
-        setFullName('');
-        setEmail('');
-        setPassword('');
-      }
-      setErrorMsg('');
-    } else if (role === 'admin') {
-      setEmail('admin@shyn.atelier');
-      setPassword('admin@shyn2026');
-      if (isRegister) {
-        setFullName('Store Administrator');
-      }
-      setErrorMsg('');
-    }
-  };
-
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!email.trim() || !password.trim()) {
-      setErrorMsg('Please enter both email and password.');
-      return;
-    }
+    setErrorMsg('');
 
-    if (isRegister && !fullName.trim()) {
-      setErrorMsg('Please enter your full name to create an account.');
-      return;
-    }
-
-    const isAdmin = email.toLowerCase().includes('admin');
-    const trimmedEmail = email.trim();
-    const trimmedPassword = password.trim();
-
-    const displayName = isRegister
-      ? fullName.trim()
-      : (isAdmin
-          ? 'Store Administrator'
-          : (savedCustomer && trimmedEmail.toLowerCase() === (savedCustomer.email || '').toLowerCase()
-              ? savedCustomer.name
-              : trimmedEmail.split('@')[0]));
-
-    // Store newly registered or active customer in localStorage so the chip reflects it!
-    if (!isAdmin) {
-      const custData = {
-        name: displayName,
-        email: trimmedEmail,
-        password: trimmedPassword
-      };
-      setSavedCustomer(custData);
-      try {
-        localStorage.setItem('shyn_registered_customer', JSON.stringify(custData));
-      } catch (err) {
-        console.warn('Could not save registered customer:', err);
+    if (isRegister) {
+      const res = registerUser(fullName, email, password);
+      if (!res.success) {
+        setErrorMsg(res.error);
+        return;
       }
+      onLogin(res.user);
+    } else {
+      const res = authenticateUser(email, password);
+      if (!res.success) {
+        setErrorMsg(res.error);
+        return;
+      }
+      onLogin(res.user);
     }
-
-    onLogin({
-      email: trimmedEmail,
-      name: displayName,
-      isAdmin,
-      role: isAdmin ? 'admin' : 'customer'
-    });
   };
 
   return (
@@ -345,31 +293,6 @@ export default function SiteLoginGate({ onLogin, onGuestEnter }) {
           </button>
         </div>
 
-        {/* 1-Click Quick Login Chips */}
-        <div className="demo-login-chips">
-          <span className="demo-chips-label">⚡ 1-Click Quick Login:</span>
-          <div className="demo-chips-row">
-            <button
-              type="button"
-              className={`demo-chip-btn ${savedCustomer?.name ? 'active-custom-customer' : ''}`}
-              onClick={() => handleQuickFill('customer')}
-              title={savedCustomer?.name ? `Quick fill as ${savedCustomer.name}` : 'Customer Sign In'}
-            >
-              <User size={13} className="inline mr-1 text-gold" />
-              <span>Customer{savedCustomer?.name ? ` (${savedCustomer.name.split(' ')[0]})` : ''}</span>
-            </button>
-            <button
-              type="button"
-              className="demo-chip-btn"
-              onClick={() => handleQuickFill('admin')}
-              title="Quick fill Store Administrator"
-            >
-              <Shield size={13} className="inline mr-1 text-gold" />
-              <span>Store Admin</span>
-            </button>
-          </div>
-        </div>
-
         {errorMsg && (
           <div className="login-error-banner" role="alert">
             {errorMsg}
@@ -398,7 +321,7 @@ export default function SiteLoginGate({ onLogin, onGuestEnter }) {
             <input
               id="gateEmail"
               type="email"
-              placeholder={isRegister ? "e.g. priya@heritage.in" : "e.g. customer@heritage.in"}
+              placeholder={isRegister ? "e.g. priya.sharma@gmail.com" : "Enter registered email"}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -420,11 +343,21 @@ export default function SiteLoginGate({ onLogin, onGuestEnter }) {
             <input
               id="gatePassword"
               type={showPassword ? 'text' : 'password'}
-              placeholder={isRegister ? "Minimum 6 characters" : "Enter your password"}
+              placeholder={isRegister ? "At least 12 chars & 1 uppercase" : "Enter your password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
+            {isRegister && (
+              <div className="pwd-requirement-hints">
+                <span className={`pwd-hint-item ${password.length >= 12 ? 'hint-valid' : ''}`}>
+                  {password.length >= 12 ? '✓' : '○'} At least 12 characters
+                </span>
+                <span className={`pwd-hint-item ${/[A-Z]/.test(password) ? 'hint-valid' : ''}`}>
+                  {/[A-Z]/.test(password) ? '✓' : '○'} At least 1 uppercase letter (A-Z)
+                </span>
+              </div>
+            )}
           </div>
 
           <div className="login-form-options">
@@ -444,20 +377,6 @@ export default function SiteLoginGate({ onLogin, onGuestEnter }) {
             <ArrowRight size={16} />
           </button>
         </form>
-
-        <div className="gate-mode-switch">
-          <span>{isRegister ? 'Already registered with SHYN?' : 'New customer to SHYN?'} </span>
-          <button
-            type="button"
-            className="switch-mode-btn"
-            onClick={() => {
-              setIsRegister(!isRegister);
-              setErrorMsg('');
-            }}
-          >
-            {isRegister ? 'Sign In here' : 'Create an Account'}
-          </button>
-        </div>
 
         <div className="site-login-guest">
           <span>Just browsing? </span>
