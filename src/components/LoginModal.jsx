@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { X, User, ArrowRight } from 'lucide-react';
+import { X, User, ArrowRight, ShoppingBag } from 'lucide-react';
 import { authenticateUser, registerUser } from '../services/authService';
 
-export default function LoginModal({ isOpen, onClose, onLogin }) {
+export default function LoginModal({ isOpen, onClose, onLogin, promptMessage }) {
   if (!isOpen) return null;
 
   const [isRegister, setIsRegister] = useState(false);
@@ -53,6 +53,13 @@ export default function LoginModal({ isOpen, onClose, onLogin }) {
             <X size={20} />
           </button>
         </div>
+
+        {promptMessage && (
+          <div className="login-checkout-prompt-banner">
+            <ShoppingBag size={15} className="inline mr-2 text-gold flex-shrink-0" />
+            <span>{promptMessage}</span>
+          </div>
+        )}
 
         {errorMsg && (
           <div className="login-error-banner" role="alert">

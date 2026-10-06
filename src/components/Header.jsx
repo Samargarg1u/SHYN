@@ -42,7 +42,7 @@ export default function Header({
       <div className="announcement-bar">
         <div className="announcement-content">
           <Sparkles size={13} className="inline mr-1 text-gold" />
-          <span>Complimentary Silk Saree Muslin Bag &amp; Free Insured Delivery across India on orders above ₹1,999</span>
+          <span>Complimentary Silk Saree Muslin Bag &amp; Free Insured Delivery across India on orders above ₹1,000</span>
           <span className="announcement-divider">•</span>
           <span>Use code <strong>SHYN10</strong> for 10% instant discount</span>
         </div>
@@ -95,16 +95,33 @@ export default function Header({
             <Search size={16} className="search-icon" />
             <input
               type="text"
-              placeholder="Search Banarasi, Kanjivaram, Formal Shirts..."
+              placeholder="Search Sarees, Shirts, Fabrics, Colors (All Collections)..."
               value={searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
-              aria-label="Search collection"
+              onChange={(e) => {
+                onSearchChange(e.target.value);
+                if (e.target.value.trim()) {
+                  const catalogEl = document.getElementById('catalogSection');
+                  if (catalogEl) {
+                    catalogEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  const catalogEl = document.getElementById('catalogSection');
+                  if (catalogEl) {
+                    catalogEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }
+              }}
+              aria-label="Search all collections"
             />
             {searchQuery && (
               <button 
                 type="button" 
                 className="search-clear-btn"
                 onClick={() => onSearchChange('')}
+                title="Clear search"
               >
                 ✕
               </button>
@@ -220,7 +237,7 @@ export default function Header({
                         </div>
                       </div>
                       <div className="menu-divider" />
-                      {isAdmin ? (
+                      {isAdmin && (
                         <>
                           <button
                             type="button"
@@ -244,19 +261,8 @@ export default function Header({
                             <BarChart3 size={16} className="text-gold" />
                             <span><strong>📊 Admin Sales Analytics &amp; Orders</strong></span>
                           </button>
+                          <div className="menu-divider" />
                         </>
-                      ) : (
-                        <button
-                          type="button"
-                          className="menu-item text-gold"
-                          onClick={() => {
-                            setShowAccountDropdown(false);
-                            onOpenAdmin('analytics');
-                          }}
-                        >
-                          <BarChart3 size={15} />
-                          <span>📊 Store Admin &amp; Sales Analytics</span>
-                        </button>
                       )}
                       <button
                         type="button"
@@ -312,18 +318,6 @@ export default function Header({
                         }}
                       >
                         Sign In / Register
-                      </button>
-                      <div className="menu-divider my-2" />
-                      <button
-                        type="button"
-                        className="menu-item text-gold w-full text-left"
-                        onClick={() => {
-                          setShowAccountDropdown(false);
-                          onOpenAdmin('analytics');
-                        }}
-                      >
-                        <BarChart3 size={15} className="inline mr-1" />
-                        <span>📊 Store Admin &amp; Sales Analytics</span>
                       </button>
                     </div>
                   )}

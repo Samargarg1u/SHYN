@@ -8,7 +8,8 @@ import {
   Check, 
   Sparkles, 
   ShieldCheck,
-  Gift
+  Gift,
+  User
 } from 'lucide-react';
 import { COUPONS, calculateDiscount } from '../data/coupons';
 
@@ -18,7 +19,8 @@ export default function CartDrawer({
   cart,
   onUpdateQuantity,
   onRemoveItem,
-  onProceedToCheckout
+  onProceedToCheckout,
+  user
 }) {
   const [couponCodeInput, setCouponCodeInput] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState(null);
@@ -30,7 +32,7 @@ export default function CartDrawer({
 
   const subtotal = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
   const discount = appliedCoupon ? calculateDiscount(appliedCoupon, subtotal) : 0;
-  const shipping = subtotal >= 1999 || subtotal === 0 ? 0 : (appliedCoupon?.code === 'FREESHIP' ? 0 : 99);
+  const shipping = subtotal >= 1000 || subtotal === 0 ? 0 : (appliedCoupon?.code === 'FREESHIP' ? 0 : 99);
   const giftCost = isGift ? 150 : 0;
   const grandTotal = Math.max(0, subtotal - discount + shipping + giftCost);
 
@@ -83,18 +85,18 @@ export default function CartDrawer({
 
         {/* Free Shipping Progress Indicator */}
         <div className="free-shipping-bar-box">
-          {subtotal >= 1999 ? (
+          {subtotal >= 1000 ? (
             <div className="shipping-progress-text success">
               <Check size={14} className="inline mr-1" />
               <span>Congratulations! You have unlocked <strong>Free Insured Express Delivery</strong></span>
             </div>
           ) : (
             <div className="shipping-progress-text">
-              <span>Add ₹{(1999 - subtotal).toLocaleString('en-IN')} more to unlock <strong>Free Insured Delivery</strong></span>
+              <span>Add ₹{(1000 - subtotal).toLocaleString('en-IN')} more to unlock <strong>Free Insured Delivery</strong></span>
               <div className="shipping-progress-track">
                 <div
                   className="shipping-progress-fill"
-                  style={{ width: `${Math.min(100, (subtotal / 1999) * 100)}%` }}
+                  style={{ width: `${Math.min(100, (subtotal / 1000) * 100)}%` }}
                 />
               </div>
             </div>
@@ -313,6 +315,13 @@ export default function CartDrawer({
             </div>
 
             {/* Checkout Action Button */}
+            {!user?.isLoggedIn && (
+              <div className="drawer-login-required-alert">
+                <User size={14} className="text-gold inline mr-2 flex-shrink-0" />
+                <span>Browsing as Guest. <strong>Sign In / Create Account</strong> is required to complete your order.</span>
+              </div>
+            )}
+
             <button
               type="button"
               className="drawer-checkout-btn"
@@ -330,7 +339,7 @@ export default function CartDrawer({
                 });
               }}
             >
-              <span>Proceed to Royal Checkout</span>
+              <span>{user?.isLoggedIn ? 'Proceed to Royal Checkout' : 'Sign In to Royal Checkout'}</span>
               <ArrowRight size={17} />
             </button>
 

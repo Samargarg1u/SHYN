@@ -483,6 +483,56 @@ img {
   font-weight: 600;
 }
 
+.clear-search-pill-btn {
+  background: #fdf2f2;
+  color: #c62828;
+  border: 1px solid #f5c2c7;
+  padding: 3px 12px;
+  border-radius: 20px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+}
+
+.clear-search-pill-btn:hover {
+  background: #c62828;
+  color: #ffffff;
+  border-color: #c62828;
+  transform: translateY(-1px);
+}
+
+.login-checkout-prompt-banner {
+  background: #fdfbf7;
+  border: 1.5px solid #ebd9c8;
+  border-left: 4px solid var(--maroon);
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  color: var(--ink);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.drawer-login-required-alert {
+  background: #fff8e1;
+  border: 1px solid #ffe082;
+  color: #795548;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 11.5px;
+  line-height: 1.4;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+}
+
 /* =========================================================
    Announcement Ticker Bar
    ========================================================= */
@@ -5412,5 +5462,142 @@ img {
   color: #1565c0;
   border: 1px solid #bbdefb;
 }
+
+/* =========================================================
+   Sales Analytics Toolbar & Reset Options
+   ========================================================= */
+.admin-btn-danger {
+  background: rgba(198, 40, 40, 0.15);
+  color: #ffcdd2;
+  border: 1px solid rgba(239, 83, 80, 0.45);
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-btn-danger:hover {
+  background: #c62828;
+  color: #ffffff;
+  border-color: #b71c1c;
+  box-shadow: 0 2px 10px rgba(198, 40, 40, 0.35);
+}
+
+.analytics-toolbar-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  background: #ffffff;
+  border-bottom: 1px solid #ebd9c8;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.analytics-toolbar-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.analytics-toolbar-info h4 {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  color: var(--ink);
+  font-weight: 700;
+  margin: 0;
+}
+
+.analytics-toolbar-info p {
+  font-size: 12px;
+  color: #7a6e6b;
+  margin: 2px 0 0;
+}
+
+.analytics-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.analytics-btn-sample {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  background: #fdf6ec;
+  color: #8c5a04;
+  border: 1px solid #f3d79b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.analytics-btn-sample:hover {
+  background: #fbeacf;
+  color: #633f02;
+  transform: translateY(-1px);
+}
+
+.analytics-btn-reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  background: #fff0f0;
+  color: #c62828;
+  border: 1px solid #ffcdd2;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.analytics-btn-reset:hover {
+  background: #c62828;
+  color: #ffffff;
+  border-color: #b71c1c;
+  transform: translateY(-1px);
+}
+
+.feed-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.analytics-feed-reset-link {
+  display: inline-flex;
+  align-items: center;
+  background: #fff0f0;
+  color: #c62828;
+  border: 1px solid #ffcdd2;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.analytics-feed-reset-link:hover {
+  background: #c62828;
+  color: #ffffff;
+}
+
+.empty-orders-cta-row {
+  margin-top: 14px;
+  display: flex;
+  justify-content: center;
+}
+
 
 

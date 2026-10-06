@@ -9,7 +9,7 @@
     "build": "vite build && node -e \"import('fs').then(fs => fs.cpSync('dist/assets', 'assets', {recursive: true}))\"",
     "preview": "vite preview",
     "server": "node server.js",
-    "start": "vite"
+    "start": "node server.js"
   },
   "keywords": [
     "ecommerce",

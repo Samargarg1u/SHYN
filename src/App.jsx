@@ -58,6 +58,8 @@ export default function App() {
   const [adminOpen, setAdminOpen] = useState(false);
   const [adminInitialTab, setAdminInitialTab] = useState('inventory');
   const [pendingAdminTab, setPendingAdminTab] = useState(null);
+  const [pendingCheckout, setPendingCheckout] = useState(null);
+  const [loginPrompt, setLoginPrompt] = useState('');
 
   // --- Toast Notification State ---
   const [toasts, setToasts] = useState([]);
@@ -84,16 +86,32 @@ export default function App() {
   const filteredProducts = useMemo(() => {
     return products
       .filter((p) => {
-        if (p.gender !== selectedGender) return false;
-        if (selectedCategory !== 'All' && p.category !== selectedCategory) return false;
-        if (inStockOnly && p.stock <= 0) return false;
-        if (searchQuery.trim()) {
-          const q = searchQuery.toLowerCase();
-          const matchName = p.name.toLowerCase().includes(q);
-          const matchCategory = p.category.toLowerCase().includes(q);
-          const matchFabric = p.fabric ? p.fabric.toLowerCase().includes(q) : false;
-          if (!matchName && !matchCategory && !matchFabric) return false;
+        const hasSearch = Boolean(searchQuery && searchQuery.trim());
+        if (hasSearch) {
+          const q = searchQuery.toLowerCase().trim();
+          const matchName = (p.name || '').toLowerCase().includes(q);
+          const matchCategory = (p.category || '').toLowerCase().includes(q);
+          const matchFabric = (p.fabric || '').toLowerCase().includes(q);
+          const matchGender = (p.gender || '').toLowerCase().includes(q);
+          const matchDesc = (p.desc || '').toLowerCase().includes(q);
+          const matchOrigin = (p.origin || '').toLowerCase().includes(q);
+          const matchZari = (p.zari || '').toLowerCase().includes(q);
+          const matchId = String(p.id || '').includes(q);
+          const matchColors = Array.isArray(p.colors) && p.colors.some((c) =>
+            (typeof c === 'string' ? c : (c.name || '')).toLowerCase().includes(q)
+          );
+
+          // When searching, search across both Women & Men collections and all categories!
+          if (!matchName && !matchCategory && !matchFabric && !matchGender && !matchDesc && !matchOrigin && !matchZari && !matchId && !matchColors) {
+            return false;
+          }
+        } else {
+          // When NOT searching, respect the active gender and category tab filters
+          if (p.gender !== selectedGender) return false;
+          if (selectedCategory !== 'All' && p.category !== selectedCategory) return false;
         }
+
+        if (inStockOnly && Number(p.stock || 0) <= 0) return false;
         return true;
       })
       .sort((a, b) => {
@@ -244,6 +262,8 @@ export default function App() {
       isAdmin: isStoreAdmin
     });
     setGateDismissed(true);
+    setLoginModalOpen(false);
+
     if (isStoreAdmin) {
       const targetTab = pendingAdminTab || 'inventory';
       setAdminInitialTab(targetTab);
@@ -254,6 +274,13 @@ export default function App() {
       setAdminOpen(false);
       setPendingAdminTab(null);
       addToast(`Welcome back, ${userData.name}!`);
+
+      // Resume pending checkout seamlessly if user initiated purchase as a guest
+      if (pendingCheckout) {
+        setCheckoutModal({ isOpen: true, data: pendingCheckout });
+        setPendingCheckout(null);
+        setLoginPrompt('');
+      }
     }
   };
 
@@ -294,6 +321,14 @@ export default function App() {
 
   // --- Checkout Handlers ---
   const handleProceedToCheckout = (checkoutSummary) => {
+    if (!user.isLoggedIn) {
+      setPendingCheckout(checkoutSummary);
+      setLoginPrompt('Please Sign In or Create an Account to complete your purchase.');
+      setCartOpen(false);
+      setLoginModalOpen(true);
+      addToast('Please Sign In or Create an Account to proceed with your order.', 'info');
+      return;
+    }
     setCartOpen(false);
     setCheckoutModal({ isOpen: true, data: checkoutSummary });
   };
@@ -355,6 +390,8 @@ export default function App() {
           inStockOnly={inStockOnly}
           onToggleInStock={setInStockOnly}
           productCount={filteredProducts.length}
+          searchQuery={searchQuery}
+          onClearSearch={() => setSearchQuery('')}
         />
 
         {/* Product Cards Grid */}
@@ -419,6 +456,7 @@ export default function App() {
         onUpdateQuantity={handleUpdateQuantity}
         onRemoveItem={handleRemoveItem}
         onProceedToCheckout={handleProceedToCheckout}
+        user={user}
       />
 
       {/* 3. Wishlist Modal */}
@@ -436,6 +474,7 @@ export default function App() {
         onClose={() => setCheckoutModal({ isOpen: false, data: null })}
         checkoutData={checkoutModal.data}
         onOrderSuccess={handleOrderSuccess}
+        user={user}
       />
 
       {/* 5. Live Order Tracking Modal */}
@@ -454,8 +493,12 @@ export default function App() {
       {/* 7. Member Login / Registration Modal */}
       <LoginModal
         isOpen={loginModalOpen}
-        onClose={() => setLoginModalOpen(false)}
+        onClose={() => {
+          setLoginModalOpen(false);
+          setLoginPrompt('');
+        }}
         onLogin={handleLogin}
+        promptMessage={loginPrompt}
       />
 
       {/* 8. Royal AI Stylist & Concierge */}
@@ -478,6 +521,10 @@ export default function App() {
           onUpdateProducts={(updated) => {
             setProducts(updated);
             addToast('Catalog inventory updated successfully!');
+          }}
+          onUpdateOrders={(updated) => {
+            setOrders(updated);
+            addToast('Sales analytics & orders updated successfully!');
           }}
           onOpenDetails={(p) => setDetailModal({ isOpen: true, product: p, initialColor: null })}
         />

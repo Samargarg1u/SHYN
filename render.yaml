@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: shyn-haute-couture
+    env: node
+    plan: free
+    region: singapore
+    buildCommand: npm install && npm run build
+    startCommand: node server.js
+    envVars:
+      - key: PORT
+        value: 3000
+      - key: NODE_ENV
+        value: production

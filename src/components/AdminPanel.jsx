@@ -30,6 +30,122 @@ import { printTaxInvoice } from '../utils/invoiceGenerator';
 import { sendOrderConfirmationEmail, getSentEmailForOrder, generateOrderEmailHtml } from '../services/emailService';
 import EmailPreviewModal from './EmailPreviewModal';
 
+const SAMPLE_SALES_ORDERS = [
+  {
+    id: 'SHYN-882194',
+    date: '04 Oct 2026',
+    customer: { name: 'Princess Gayatri Devi', email: 'gayatridevi.heritage@gmail.com', city: 'Jaipur', state: 'Rajasthan' },
+    shippingAddress: {
+      name: 'Princess Gayatri Devi',
+      phone: '9829012345',
+      email: 'gayatridevi.heritage@gmail.com',
+      address: 'Rambagh Palace Boulevard, Suite 104',
+      city: 'Jaipur',
+      state: 'Rajasthan',
+      pincode: '302005'
+    },
+    items: [
+      {
+        id: 1,
+        name: 'Banarasi Silk Zari Saree',
+        price: 3499,
+        quantity: 2,
+        selectedColor: 'Maroon',
+        image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80'
+      },
+      {
+        id: 3,
+        name: 'Designer Wedding Saree',
+        price: 5999,
+        quantity: 1,
+        selectedColor: 'Crimson Red',
+        image: 'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=800&q=80'
+      }
+    ],
+    subtotal: 12997,
+    discount: 1299,
+    shipping: 0,
+    isGift: true,
+    giftMessage: 'With deepest compliments for the Royal Wedding Celebration.',
+    giftCost: 150,
+    grandTotal: 11848,
+    paymentMethod: 'Razorpay (Prepaid UPI/Card)',
+    status: 'Dispatched via BlueDart Express',
+    emailSent: true,
+    emailRecipient: 'gayatridevi.heritage@gmail.com'
+  },
+  {
+    id: 'SHYN-734102',
+    date: '05 Oct 2026',
+    customer: { name: 'Maharaja Raghavendra Singh', email: 'raghavendra.singh@udaipur.in', city: 'Udaipur', state: 'Rajasthan' },
+    shippingAddress: {
+      name: 'Maharaja Raghavendra Singh',
+      phone: '9828114400',
+      email: 'raghavendra.singh@udaipur.in',
+      address: 'City Palace Enclave, Lake Pichola View',
+      city: 'Udaipur',
+      state: 'Rajasthan',
+      pincode: '313001'
+    },
+    items: [
+      {
+        id: 10,
+        name: 'Royal Heritage Silk Kurta Set',
+        price: 3899,
+        quantity: 1,
+        selectedColor: 'Ivory & Gold',
+        image: 'https://images.unsplash.com/photo-1597983073493-88cd35cf93b0?auto=format&fit=crop&w=800&q=80'
+      }
+    ],
+    subtotal: 3899,
+    discount: 390,
+    shipping: 0,
+    isGift: false,
+    giftMessage: '',
+    giftCost: 0,
+    grandTotal: 3509,
+    paymentMethod: 'Razorpay (Prepaid UPI/Card)',
+    status: 'Order Placed',
+    emailSent: true,
+    emailRecipient: 'raghavendra.singh@udaipur.in'
+  },
+  {
+    id: 'SHYN-629851',
+    date: '06 Oct 2026',
+    customer: { name: 'Aadhya Nambiar', email: 'aadhya.nambiar@bengaluru.tech', city: 'Bengaluru', state: 'Karnataka' },
+    shippingAddress: {
+      name: 'Aadhya Nambiar',
+      phone: '9900887766',
+      email: 'aadhya.nambiar@bengaluru.tech',
+      address: 'Prestige Boulevard, Indiranagar 100ft Rd',
+      city: 'Bengaluru',
+      state: 'Karnataka',
+      pincode: '560038'
+    },
+    items: [
+      {
+        id: 2,
+        name: 'Pure Cotton Handloom Saree',
+        price: 1899,
+        quantity: 1,
+        selectedColor: 'Indigo',
+        image: 'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=800&q=80'
+      }
+    ],
+    subtotal: 1899,
+    discount: 0,
+    shipping: 0,
+    isGift: true,
+    giftMessage: 'Happy Festive Season! - With love',
+    giftCost: 150,
+    grandTotal: 2049,
+    paymentMethod: 'Cash on Delivery',
+    status: 'In Transit',
+    emailSent: true,
+    emailRecipient: 'aadhya.nambiar@bengaluru.tech'
+  }
+];
+
 export default function AdminPanel({
   isOpen,
   onClose,
@@ -37,6 +153,7 @@ export default function AdminPanel({
   onUpdateProducts,
   onOpenDetails,
   orders = [],
+  onUpdateOrders,
   initialTab = 'inventory'
 }) {
   if (!isOpen) return null;
@@ -204,6 +321,41 @@ export default function AdminPanel({
       setSmtpMsg({ type: 'error', text: `Connection error: ${err.message}. Ensure node server.js is running.` });
     } finally {
       setSmtpTesting(false);
+    }
+  };
+
+  // Reset Sales Analytics Handler
+  const handleResetSalesAnalytics = () => {
+    const confirmed = window.confirm(
+      '⚠️ RESET SALES ANALYTICS CONFIRMATION:\n\n' +
+      'Are you sure you want to reset all sales analytics?\n\n' +
+      'This action will:\n' +
+      '• Clear all customer orders & invoice records\n' +
+      '• Reset Total Store Revenue to ₹0\n' +
+      '• Reset Total Units Sold to 0 weaves\n' +
+      '• Reset Orders Processed to 0\n\n' +
+      'Do you want to continue?'
+    );
+
+    if (confirmed) {
+      if (onUpdateOrders) {
+        onUpdateOrders([]);
+      }
+      try {
+        localStorage.removeItem('as_orders');
+        localStorage.removeItem('shyn_dispatched_emails');
+      } catch (err) {
+        console.warn('LocalStorage reset note:', err);
+      }
+      alert('✓ Sales Analytics & Customer Orders have been reset to ₹0.');
+    }
+  };
+
+  // Add Sample Sales Analytics Handler
+  const handleAddSampleSales = () => {
+    if (onUpdateOrders) {
+      onUpdateOrders([...SAMPLE_SALES_ORDERS, ...safeOrders]);
+      alert('✓ Added 3 royal sample sales orders to live analytics dashboard!');
     }
   };
 
@@ -398,24 +550,50 @@ export default function AdminPanel({
           </div>
 
           <div className="admin-top-actions">
-            <button
-              type="button"
-              className="admin-btn-primary"
-              onClick={handleOpenAdd}
-            >
-              <Plus size={16} />
-              <span>Add New Creation</span>
-            </button>
+            {adminTab === 'inventory' ? (
+              <>
+                <button
+                  type="button"
+                  className="admin-btn-primary"
+                  onClick={handleOpenAdd}
+                >
+                  <Plus size={16} />
+                  <span>Add New Creation</span>
+                </button>
 
-            <button
-              type="button"
-              className="admin-btn-secondary"
-              onClick={handleResetCatalog}
-              title="Reset inventory to initial master catalogue"
-            >
-              <RotateCcw size={15} />
-              <span>Reset Catalog</span>
-            </button>
+                <button
+                  type="button"
+                  className="admin-btn-secondary"
+                  onClick={handleResetCatalog}
+                  title="Reset inventory to initial master catalogue"
+                >
+                  <RotateCcw size={15} />
+                  <span>Reset Catalog</span>
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  className="admin-btn-primary"
+                  onClick={handleAddSampleSales}
+                  title="Populate authentic sample orders to preview analytics & invoices"
+                >
+                  <Sparkles size={15} />
+                  <span>Add Sample Sales</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="admin-btn-danger"
+                  onClick={handleResetSalesAnalytics}
+                  title="Reset all store revenue, units sold, and orders back to ₹0"
+                >
+                  <RotateCcw size={15} />
+                  <span>Reset Sales Analytics</span>
+                </button>
+              </>
+            )}
 
             <button
               type="button"
@@ -638,6 +816,37 @@ export default function AdminPanel({
     ) : (
       /* SALES ANALYTICS & ORDERS DASHBOARD VIEW */
       <div className="admin-analytics-dashboard">
+        {/* Quick Actions & Reset Toolbar */}
+        <div className="analytics-toolbar-bar">
+          <div className="analytics-toolbar-info">
+            <BarChart3 size={20} className="text-gold" />
+            <div>
+              <h4>Haute Couture Sales &amp; Financial Analytics</h4>
+              <p>Real-time gross revenue, order volume, units sold &amp; automated invoice feeds</p>
+            </div>
+          </div>
+          <div className="analytics-toolbar-actions">
+            <button
+              type="button"
+              className="analytics-btn-sample"
+              onClick={handleAddSampleSales}
+              title="Add authentic sample orders to test live revenue metrics"
+            >
+              <Sparkles size={14} />
+              <span>Add Sample Sales</span>
+            </button>
+            <button
+              type="button"
+              className="analytics-btn-reset"
+              onClick={handleResetSalesAnalytics}
+              title="Reset all store revenue and customer order records back to zero"
+            >
+              <RotateCcw size={14} />
+              <span>Reset Sales Analytics</span>
+            </button>
+          </div>
+        </div>
+
         {/* 4 Stat Cards */}
         <div className="admin-stats-row">
           <div className="admin-stat-card">
@@ -810,7 +1019,20 @@ export default function AdminPanel({
               <Printer size={18} className="text-gold inline mr-2" />
               <h3>Customer Orders &amp; Live Invoicing Feed</h3>
             </div>
-            <span className="analytics-subbadge">{safeOrders.length} Recorded Orders</span>
+            <div className="feed-header-actions">
+              <span className="analytics-subbadge">{safeOrders.length} Recorded Orders</span>
+              {safeOrders.length > 0 && (
+                <button
+                  type="button"
+                  className="analytics-feed-reset-link"
+                  onClick={handleResetSalesAnalytics}
+                  title="Reset sales analytics and clear order list"
+                >
+                  <RotateCcw size={12} className="inline mr-1" />
+                  <span>Reset Orders</span>
+                </button>
+              )}
+            </div>
           </div>
 
           {safeOrders.length > 0 ? (
@@ -915,7 +1137,18 @@ export default function AdminPanel({
             </div>
           ) : (
             <div className="empty-orders-view">
+              <RotateCcw size={32} className="text-muted" style={{ margin: '0 auto 10px', display: 'block' }} />
               <p>No customer orders recorded yet. As orders are placed in the store, they will automatically appear here with one-click tax invoice generation!</p>
+              <div className="empty-orders-cta-row">
+                <button
+                  type="button"
+                  className="analytics-btn-sample"
+                  onClick={handleAddSampleSales}
+                >
+                  <Sparkles size={14} className="inline mr-1" />
+                  <span>Populate Sample Sales Analytics</span>
+                </button>
+              </div>
             </div>
           )}
         </div>

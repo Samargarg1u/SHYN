@@ -10,19 +10,36 @@ export default function CategoryFilters({
   onSortChange,
   inStockOnly,
   onToggleInStock,
-  productCount
+  productCount,
+  searchQuery = '',
+  onClearSearch
 }) {
+  const isSearching = Boolean(searchQuery && searchQuery.trim());
   const categories = CATEGORIES_BY_GENDER[selectedGender] || ['All'];
 
   return (
     <div id="catalogSection" className="filters-container-wrapper">
       <div className="filters-header-row">
         <div>
-          <h2 className="catalog-heading">
-            {selectedGender === 'Women' ? 'Heritage Saree Atelier' : 'Sartorial Menswear'}
-          </h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+            <h2 className="catalog-heading">
+              {isSearching ? `Search Results for "${searchQuery}"` : (selectedGender === 'Women' ? 'Heritage Saree Atelier' : 'Sartorial Menswear')}
+            </h2>
+            {isSearching && onClearSearch && (
+              <button
+                type="button"
+                className="clear-search-pill-btn"
+                onClick={onClearSearch}
+                title="Clear Search"
+              >
+                ✕ Clear Search
+              </button>
+            )}
+          </div>
           <p className="catalog-subheading">
-            Showing {productCount} handcrafted luxury creation{productCount === 1 ? '' : 's'}
+            {isSearching
+              ? `Found ${productCount} creation${productCount === 1 ? '' : 's'} across Women's & Men's collections`
+              : `Showing ${productCount} handcrafted luxury creation${productCount === 1 ? '' : 's'}`}
           </p>
         </div>
 
@@ -55,22 +72,24 @@ export default function CategoryFilters({
         </div>
       </div>
 
-      {/* Category Pills Slider */}
-      <div className="category-pills-row">
-        {categories.map((cat) => {
-          const isActive = selectedCategory === cat;
-          return (
-            <button
-              key={cat}
-              type="button"
-              className={`category-pill ${isActive ? 'active' : ''}`}
-              onClick={() => onSelectCategory(cat)}
-            >
-              {cat === 'All' ? '✨ View All' : cat}
-            </button>
-          );
-        })}
-      </div>
+      {/* Category Pills Slider - Only shown when not actively searching */}
+      {!isSearching && (
+        <div className="category-pills-row">
+          {categories.map((cat) => {
+            const isActive = selectedCategory === cat;
+            return (
+              <button
+                key={cat}
+                type="button"
+                className={`category-pill ${isActive ? 'active' : ''}`}
+                onClick={() => onSelectCategory(cat)}
+              >
+                {cat === 'All' ? '✨ View All' : cat}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

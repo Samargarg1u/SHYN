@@ -41,6 +41,7 @@ app.use((req, res, next) => {
 });
 
 app.use(express.static(path.join(__dirname, "dist")));
+app.use(express.static(__dirname));
 
 // Automated Order Confirmation Email Endpoint
 app.post("/api/send-order-email", async (req, res) => {
@@ -276,7 +277,10 @@ app.post("/api/verify-payment", async (req, res) => {
 
 // Fallback to React Single Page App
 app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "dist", "index.html"));
+  if (fs.existsSync(path.join(__dirname, "dist", "index.html"))) {
+    return res.sendFile(path.join(__dirname, "dist", "index.html"));
+  }
+  res.sendFile(path.join(__dirname, "index.html"));
 });
 
 app.listen(PORT, () => {

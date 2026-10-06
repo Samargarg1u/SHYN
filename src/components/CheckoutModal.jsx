@@ -23,9 +23,11 @@ export default function CheckoutModal({
   isOpen,
   onClose,
   checkoutData,
-  onOrderSuccess
+  onOrderSuccess,
+  user
 }) {
   if (!isOpen || !checkoutData) return null;
+  if (!user?.isLoggedIn) return null;
 
   const [step, setStep] = useState(1); // 1: Address, 2: Payment, 3: Confirmation
   const [showEmailModal, setShowEmailModal] = useState(false);
@@ -37,12 +39,16 @@ export default function CheckoutModal({
       const savedCust = localStorage.getItem('shyn_registered_customer');
       const parsedCust = savedCust ? JSON.parse(savedCust) : null;
 
-      const defaultName = (parsedUser && parsedUser.isLoggedIn && parsedUser.name && parsedUser.name !== 'Guest')
-        ? parsedUser.name
-        : (parsedCust?.name || '');
-      const defaultEmail = (parsedUser && parsedUser.isLoggedIn && parsedUser.email)
-        ? parsedUser.email
-        : (parsedCust?.email || '');
+      const defaultName = (user && user.isLoggedIn && user.name && user.name !== 'Guest')
+        ? user.name
+        : ((parsedUser && parsedUser.isLoggedIn && parsedUser.name && parsedUser.name !== 'Guest')
+          ? parsedUser.name
+          : (parsedCust?.name || ''));
+      const defaultEmail = (user && user.isLoggedIn && user.email)
+        ? user.email
+        : ((parsedUser && parsedUser.isLoggedIn && parsedUser.email)
+          ? parsedUser.email
+          : (parsedCust?.email || ''));
 
       return {
         name: defaultName,
@@ -55,9 +61,9 @@ export default function CheckoutModal({
       };
     } catch {
       return {
-        name: '',
+        name: user?.name && user?.name !== 'Guest' ? user.name : '',
         phone: '',
-        email: '',
+        email: user?.email || '',
         pincode: '',
         address: '',
         city: '',
@@ -65,6 +71,17 @@ export default function CheckoutModal({
       };
     }
   });
+
+  // Keep customer name & email in sync with authenticated user
+  React.useEffect(() => {
+    if (user && user.isLoggedIn) {
+      setFormData((prev) => ({
+        ...prev,
+        name: prev.name && prev.name !== 'Guest' ? prev.name : (user.name !== 'Guest' ? user.name : prev.name),
+        email: prev.email ? prev.email : (user.email || prev.email)
+      }));
+    }
+  }, [user, isOpen]);
   const [paymentMethod, setPaymentMethod] = useState('razorpay'); // 'razorpay' or 'cod'
   const [isProcessing, setIsProcessing] = useState(false);
   const [confirmedOrder, setConfirmedOrder] = useState(null);
