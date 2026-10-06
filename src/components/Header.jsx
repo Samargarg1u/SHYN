@@ -327,6 +327,233 @@ export default function Header({
           </div>
         </div>
       </div>
+
+      {/* Mobile Search & Category Quick Row (Visible on screens <= 768px) */}
+      <div className="mobile-search-row">
+        <div className="mobile-search-input-wrap">
+          <Search size={15} className="mobile-search-icon" />
+          <input
+            type="text"
+            placeholder="Search Sarees, Shirts, Colors..."
+            value={searchQuery}
+            onChange={(e) => {
+              onSearchChange(e.target.value);
+              if (e.target.value.trim()) {
+                const catalogEl = document.getElementById('catalogSection');
+                if (catalogEl) catalogEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }
+            }}
+            aria-label="Search all collections on mobile"
+          />
+          {searchQuery && (
+            <button 
+              type="button" 
+              className="search-clear-btn"
+              onClick={() => onSearchChange('')}
+            >
+              ✕
+            </button>
+          )}
+        </div>
+        <div className="mobile-gender-toggle-bar">
+          <button
+            type="button"
+            className={`mobile-gender-btn ${selectedGender === 'Women' ? 'active' : ''}`}
+            onClick={() => onGenderChange('Women')}
+          >
+            👑 Women
+          </button>
+          <button
+            type="button"
+            className={`mobile-gender-btn ${selectedGender === 'Men' ? 'active' : ''}`}
+            onClick={() => onGenderChange('Men')}
+          >
+            👔 Men
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Slide-In Navigation Menu Drawer */}
+      {mobileMenuOpen && (
+        <div className="mobile-nav-overlay" onClick={() => setMobileMenuOpen(false)}>
+          <div className="mobile-nav-sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="mobile-nav-header">
+              <div className="header-brand">
+                <div className="brand-mark"><span>S</span></div>
+                <div className="brand-text">
+                  <span className="brand-title">SHYN</span>
+                  <span className="brand-subtitle">HAUTE COUTURE</span>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="mobile-close-btn"
+                onClick={() => setMobileMenuOpen(false)}
+                aria-label="Close menu"
+              >
+                <X size={22} />
+              </button>
+            </div>
+
+            {/* Mobile Gender Switcher in Drawer */}
+            <div className="mobile-drawer-gender">
+              <button
+                type="button"
+                className={`drawer-gender-btn ${selectedGender === 'Women' ? 'active' : ''}`}
+                onClick={() => {
+                  onGenderChange('Women');
+                  setMobileMenuOpen(false);
+                }}
+              >
+                👑 Women (Sarees)
+              </button>
+              <button
+                type="button"
+                className={`drawer-gender-btn ${selectedGender === 'Men' ? 'active' : ''}`}
+                onClick={() => {
+                  onGenderChange('Men');
+                  setMobileMenuOpen(false);
+                }}
+              >
+                👔 Men (Sartorial)
+              </button>
+            </div>
+
+            {/* Drawer Navigation Links */}
+            <div className="mobile-drawer-links">
+              <button
+                type="button"
+                className="drawer-link-row"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  const el = document.getElementById('catalogSection');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }}
+              >
+                <Sparkles size={18} className="text-gold" />
+                <span>Explore Full Collection</span>
+              </button>
+
+              <button
+                type="button"
+                className="drawer-link-row"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenOrders();
+                }}
+              >
+                <Package size={18} className="text-gold" />
+                <span>My Orders &amp; Invoices</span>
+              </button>
+
+              <button
+                type="button"
+                className="drawer-link-row"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenWishlist();
+                }}
+              >
+                <Heart size={18} className="text-gold" />
+                <div className="drawer-link-content">
+                  <span>Saved Wishlist</span>
+                  {wishlistCount > 0 && <span className="drawer-count-badge">{wishlistCount}</span>}
+                </div>
+              </button>
+
+              <button
+                type="button"
+                className="drawer-link-row"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenCart();
+                }}
+              >
+                <ShoppingBag size={18} className="text-gold" />
+                <div className="drawer-link-content">
+                  <span>Shopping Bag</span>
+                  {cartCount > 0 && <span className="drawer-count-badge gold">{cartCount}</span>}
+                </div>
+              </button>
+
+              <button
+                type="button"
+                className="drawer-link-row"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenAssistance();
+                }}
+              >
+                <Headphones size={18} className="text-gold" />
+                <span>Royal Concierge Assistance</span>
+              </button>
+
+              {isAdmin && (
+                <>
+                  <div className="drawer-divider" />
+                  <button
+                    type="button"
+                    className="drawer-link-row admin-highlight"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      onOpenAdmin('inventory');
+                    }}
+                  >
+                    <ShieldCheck size={18} className="text-gold" />
+                    <span><strong>🛡️ Admin Products CMS</strong></span>
+                  </button>
+                  <button
+                    type="button"
+                    className="drawer-link-row admin-highlight"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      onOpenAdmin('analytics');
+                    }}
+                  >
+                    <BarChart3 size={18} className="text-gold" />
+                    <span><strong>📊 Sales Analytics &amp; Orders</strong></span>
+                  </button>
+                </>
+              )}
+            </div>
+
+            {/* Mobile Drawer Footer User Area */}
+            <div className="mobile-drawer-footer">
+              {isLoggedIn ? (
+                <div className="drawer-user-info-box">
+                  <div className="drawer-user-meta">
+                    <strong>{user.name}</strong>
+                    <span>{user.email}</span>
+                  </div>
+                  <button
+                    type="button"
+                    className="drawer-signout-btn"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      onLogout();
+                    }}
+                  >
+                    <LogOut size={16} />
+                    <span>Sign Out</span>
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  className="drawer-signin-btn"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    onOpenLoginModal();
+                  }}
+                >
+                  <User size={16} />
+                  <span>Member Sign In / Register</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }
