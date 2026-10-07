@@ -421,9 +421,9 @@ export default function AdminPanel({
     }
   };
 
-  // Reset to initial 13 master products
+  // Reset to initial master products
   const handleResetCatalog = () => {
-    if (window.confirm('Reset catalog back to default 13 luxury master creations? Any custom added products will be replaced.')) {
+    if (window.confirm('Reset catalog back to default luxury master creations? Any custom added products will be replaced.')) {
       onUpdateProducts(INITIAL_PRODUCTS);
     }
   };

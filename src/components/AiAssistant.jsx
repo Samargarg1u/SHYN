@@ -343,24 +343,114 @@ export default function AiAssistant({
       };
     }
 
-    // 8. Color-Specific Queries
-    const colorNames = ['maroon', 'red', 'gold', 'blue', 'indigo', 'yellow', 'green', 'mint', 'pink', 'ivory', 'beige', 'olive', 'black'];
-    const matchedColor = colorNames.find(c => q.includes(c));
-    if (matchedColor) {
-      const colorProducts = products.filter(p => {
-        const pColors = Array.isArray(p.colors) ? p.colors.join(' ').toLowerCase() : '';
-        const pName = (p.name || '').toLowerCase();
-        return pColors.includes(matchedColor) || pName.includes(matchedColor);
-      });
+    // 8. Precision Multi-Attribute & Color Query Engine
+    const COLOR_FAMILIES = [
+      { key: 'green', names: ['green', 'emerald', 'forest', 'mint', 'olive', 'mehendi', 'pista', 'sage', 'bottle green', 'hara', 'hari', 'sabz'], title: 'Emerald & Forest Green', hiTitle: 'Emerald aur Forest Green' },
+      { key: 'red', names: ['red', 'maroon', 'crimson', 'burgundy', 'sindoor', 'wine', 'ruby', 'lal', 'laal'], title: 'Crimson & Sindoor Red', hiTitle: 'Sindoor Red aur Royal Maroon' },
+      { key: 'gold', names: ['gold', 'golden', 'antique gold', 'sunhera', 'sona', 'mustard yellow', 'golden mustard'], title: 'Antique Gold & Zari', hiTitle: 'Antique Gold aur Zari' },
+      { key: 'blue', names: ['blue', 'navy', 'royal blue', 'indigo', 'sky blue', 'teal', 'neela', 'nila'], title: 'Royal Blue & Indigo', hiTitle: 'Royal Blue aur Indigo' },
+      { key: 'pink', names: ['pink', 'rani', 'magenta', 'rose', 'blush', 'powder pink', 'gulabi'], title: 'Rani Pink & Rose', hiTitle: 'Rani Pink aur Rose' },
+      { key: 'yellow', names: ['yellow', 'mustard', 'haldi', 'peela', 'pila', 'ochre'], title: 'Haldi & Mustard Yellow', hiTitle: 'Haldi aur Mustard Yellow' },
+      { key: 'purple', names: ['purple', 'violet', 'lavender', 'lilac', 'baingani'], title: 'Lavender & Royal Purple', hiTitle: 'Lavender aur Royal Purple' },
+      { key: 'white', names: ['white', 'ivory', 'cream', 'pearl', 'safed', 'beige'], title: 'Ivory & Royal Pearl', hiTitle: 'Ivory aur Pearl White' },
+      { key: 'black', names: ['black', 'jet black', 'charcoal', 'kala', 'kaali'], title: 'Midnight Jet Black', hiTitle: 'Midnight Jet Black' }
+    ];
 
-      if (colorProducts.length > 0) {
-        const capColor = matchedColor.charAt(0).toUpperCase() + matchedColor.slice(1);
+    const matchedColorFamily = COLOR_FAMILIES.find(cf => cf.names.some(n => {
+      const reg = new RegExp(`(^|\\s|[.,!?-])${n}($|\\s|[.,!?-])`, 'i');
+      return reg.test(q) || q.includes(n);
+    }));
+
+    const isSareeQuery = /(saree|sari|saris|sarees|pallu|drape|blouse)/i.test(q);
+    const isMenQuery = /(men|shirt|shirts|pant|pants|trouser|trousers|jogger|joggers|tshirt|t-shirt|tee|chinos|ladka|dulha|gentleman|gentlemen)/i.test(q);
+    const isComplaintOrFix = /(not set|show other|shows other|showing other|wrong|dikhaya nahi|nahi dikh raha|kuch aur|glat|fault|different)/i.test(q);
+
+    if (matchedColorFamily || isSareeQuery) {
+      // Score and rank products matching the specific color and garment type
+      const rankedMatches = products
+        .map(p => {
+          let score = 0;
+          const pName = (p.name || '').toLowerCase();
+          const pColors = Array.isArray(p.colors) ? p.colors.join(' ').toLowerCase() : '';
+          const pDesc = (p.desc || '').toLowerCase();
+          const pGender = p.gender || 'Women';
+
+          // Strict Exclusion 1: Never show men's items for saree query
+          if (isSareeQuery && (pGender !== 'Women' || !pName.includes('saree'))) {
+            return null;
+          }
+
+          // Strict Exclusion 2: Never show women's items for men's query
+          if (isMenQuery && pGender !== 'Men') {
+            return null;
+          }
+
+          // Color Scoring & Mandatory Validation
+          if (matchedColorFamily) {
+            let hasColor = false;
+            for (const kw of matchedColorFamily.names) {
+              if (pName.includes(kw)) {
+                score += 160; // In product title (e.g. "Emerald Green Kanjivaram Silk Saree")
+                hasColor = true;
+              }
+              if (pColors.includes(kw)) {
+                score += 100; // Listed in colors
+                hasColor = true;
+              }
+              if (pDesc.includes(kw)) {
+                score += 40; // In description
+                hasColor = true;
+              }
+            }
+
+            // If user asked for a color (e.g. "green"), STRICTLY EXCLUDE items without that color!
+            if (!hasColor) {
+              return null;
+            }
+          }
+
+          // Garment & Fabric match bonus
+          if (isSareeQuery && pName.includes('saree')) score += 50;
+          if (/(pant|trouser|chinos)/i.test(q) && (pName.includes('pant') || pName.includes('trouser') || pCat.includes('pant') || pCat.includes('trouser'))) score += 80;
+          if (/(shirt)/i.test(q) && (pName.includes('shirt') || pCat.includes('shirt'))) score += 80;
+          if (/(jogger)/i.test(q) && (pName.includes('jogger') || pCat.includes('jogger'))) score += 80;
+          if (/(tshirt|t-shirt|tee)/i.test(q) && (pName.includes('t-shirt') || pCat.includes('t-shirt'))) score += 80;
+          if (/(silk)/i.test(q) && (pFabric.includes('silk') || pCat.includes('silk') || pName.includes('silk'))) score += 60;
+          if (/(banarasi)/i.test(q) && (pCat.includes('banarasi') || pName.includes('banarasi'))) score += 60;
+          if (/(kanjivaram)/i.test(q) && (pCat.includes('kanjivaram') || pName.includes('kanjivaram'))) score += 60;
+
+          // Rating bonus
+          score += Math.round(Number(p.rating || 4.5) * 10);
+
+          return { product: p, score };
+        })
+        .filter(Boolean)
+        .sort((a, b) => b.score - a.score);
+
+      if (rankedMatches.length > 0) {
+        const topProducts = rankedMatches.slice(0, 3).map(rm => rm.product);
+        const colorLabel = matchedColorFamily ? matchedColorFamily.title : 'Royal Saree';
+        const colorLabelHi = matchedColorFamily ? matchedColorFamily.hiTitle : 'Royal Saree';
+
+        let responseText = '';
+        if (isComplaintOrFix) {
+          responseText = isHindi
+            ? `🙏 **Kshama karein!** Humne catalog update karke authentic **${colorLabelHi}** creations taiyaar kar di hain. Ye lijiye certified pure fabric aur intricate antique gold zari se bani exact creations. Aap bina wait kiye direct **Add to Bag** click kar sakte hain:`
+            : `🙏 **My sincere apologies!** Our couture catalog has been synchronized with our authentic **${colorLabel}** masterpieces. Here are the genuine handcrafted creations tailored exactly to your request:`;
+        } else {
+          responseText = isHindi
+            ? `Ye lijiye humari regal **${colorLabelHi}** creations! Har weave pure organic dye aur authentic antique gold zari ke sath taiyaar kiya gaya hai. Instant order ke liye direct **Add to Bag** par click karein: ✨`
+            : `Here are our breathtaking creations in **${colorLabel}**! Woven with certified pure Mulberry silk, hand-loomed gold zari, and natural pigments:`;
+        }
+
         return {
-          text: isHindi
-            ? `Ye lijiye humari exquisite **${capColor}** color creations. Har weave ka color natural organic dye aur shimmering zari ke sath taiyaar kiya gaya hai:`
-            : `Here are our exquisite creations in **${capColor}**. Dyed with natural herbal pigments and accented with gold dipped zari work:`,
-          recommendedProducts: colorProducts.slice(0, 3),
-          quickSuggestions: ["Show matching blouse ideas", "Under ₹4,000 creations", "Active coupons"]
+          text: responseText,
+          recommendedProducts: topProducts,
+          quickSuggestions: [
+            "View fabric details",
+            "Active discount coupons",
+            "Check pincode delivery time"
+          ]
         };
       }
     }
@@ -380,14 +470,23 @@ export default function AiAssistant({
     const scoredProducts = products.map(p => {
       let score = 0;
       const haystack = `${p.name} ${p.category} ${p.fabric} ${p.gender} ${p.desc} ${(p.colors || []).join(' ')}`.toLowerCase();
+      
+      // Strict gender check
+      if (isSareeQuery && (p.gender !== 'Women' || !(p.name || '').toLowerCase().includes('saree'))) {
+        return null;
+      }
+      if (isMenQuery && p.gender !== 'Men') {
+        return null;
+      }
+
       words.forEach(w => {
         if (haystack.includes(w)) score += 1;
       });
-      return { product: p, score };
-    }).filter(sp => sp.score > 0).sort((a, b) => b.score - a.score);
+      return score > 0 ? { product: p, score } : null;
+    }).filter(Boolean).sort((a, b) => b.score - a.score);
 
     const matches = scoredProducts.slice(0, 3).map(sp => sp.product);
-    const fallbackProducts = matches.length > 0 ? matches : products.slice(0, 2);
+    const fallbackProducts = matches.length > 0 ? matches : products.filter(p => isMenQuery ? p.gender === 'Men' : p.gender === 'Women').slice(0, 3);
 
     return {
       text: isHindi

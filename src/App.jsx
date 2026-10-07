@@ -40,6 +40,29 @@ export default function App() {
   // --- Products Catalog (Persistent via localStorage for Admin Editing) ---
   const [products, setProducts] = useLocalStorage('as_products', INITIAL_PRODUCTS);
 
+  // Auto-sync catalog with master creations (e.g. green sarees, color fixes)
+  useEffect(() => {
+    if (Array.isArray(products)) {
+      let needsUpdate = false;
+      const updated = [...products];
+
+      INITIAL_PRODUCTS.forEach((masterItem) => {
+        const existingIdx = updated.findIndex((p) => p.id === masterItem.id);
+        if (existingIdx === -1) {
+          updated.push(masterItem);
+          needsUpdate = true;
+        } else if (masterItem.id === 3 && updated[existingIdx].colors?.includes('Emerald Green')) {
+          updated[existingIdx] = { ...updated[existingIdx], colors: masterItem.colors };
+          needsUpdate = true;
+        }
+      });
+
+      if (needsUpdate) {
+        setProducts(updated);
+      }
+    }
+  }, []);
+
   // --- Filtering & Browsing State ---
   const [selectedGender, setSelectedGender] = useState('Women');
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -89,20 +112,22 @@ export default function App() {
         const hasSearch = Boolean(searchQuery && searchQuery.trim());
         if (hasSearch) {
           const q = searchQuery.toLowerCase().trim();
-          const matchName = (p.name || '').toLowerCase().includes(q);
-          const matchCategory = (p.category || '').toLowerCase().includes(q);
-          const matchFabric = (p.fabric || '').toLowerCase().includes(q);
-          const matchGender = (p.gender || '').toLowerCase().includes(q);
-          const matchDesc = (p.desc || '').toLowerCase().includes(q);
-          const matchOrigin = (p.origin || '').toLowerCase().includes(q);
-          const matchZari = (p.zari || '').toLowerCase().includes(q);
-          const matchId = String(p.id || '').includes(q);
-          const matchColors = Array.isArray(p.colors) && p.colors.some((c) =>
-            (typeof c === 'string' ? c : (c.name || '')).toLowerCase().includes(q)
-          );
+          const tokens = q.split(/\s+/).filter(Boolean);
+          const searchableText = [
+            p.name,
+            p.category,
+            p.fabric,
+            p.gender,
+            p.desc,
+            p.origin,
+            p.zari,
+            String(p.id),
+            ...(Array.isArray(p.colors) ? p.colors.map(c => typeof c === 'string' ? c : c.name || '') : [])
+          ].filter(Boolean).join(' ').toLowerCase();
 
-          // When searching, search across both Women & Men collections and all categories!
-          if (!matchName && !matchCategory && !matchFabric && !matchGender && !matchDesc && !matchOrigin && !matchZari && !matchId && !matchColors) {
+          // When searching, match all words across Women & Men collections and all categories!
+          const matchesAllTokens = tokens.every(token => searchableText.includes(token));
+          if (!matchesAllTokens) {
             return false;
           }
         } else {

@@ -70,7 +70,7 @@ export const INITIAL_PRODUCTS = [
       "https://images.unsplash.com/photo-1783495696062-48c44e2eea95?auto=format&fit=crop&w=800&q=80",
       "https://images.unsplash.com/photo-1667053312811-6594186d37ca?auto=format&fit=crop&w=800&q=80"
     ],
-    colors: ["Crimson Red", "Burgundy", "Emerald Green"],
+    colors: ["Crimson Red", "Burgundy", "Royal Maroon"],
     desc: "Showstopper bridal and wedding collection saree featuring heavy embroidery, stone embellishments, and an opulent scalloped border drape."
   },
   {
@@ -302,6 +302,75 @@ export const INITIAL_PRODUCTS = [
     ],
     colors: ["White", "Black", "Maroon", "Olive"],
     desc: "Premium heavyweight Supima cotton crew-neck tee made for lasting shape retention, zero shrinkage, and supreme skin touch."
+  },
+  {
+    id: 14,
+    gender: "Women",
+    name: "Emerald Green Kanjivaram Silk Saree",
+    category: "Silk",
+    price: 4999,
+    original: 6999,
+    stock: 8,
+    rating: 4.8,
+    reviews: 142,
+    fabric: "Pure Katan Mulberry Silk",
+    zari: "Authentic Antique Gold Zari Korvai Border",
+    origin: "Kanchipuram, Tamil Nadu",
+    care: "Dry Clean Only. Silk Mark Certified.",
+    image: "https://images.unsplash.com/photo-1722422687593-dc62e03c9241?auto=format&fit=crop&w=800&q=80",
+    photos: [
+      "https://images.unsplash.com/photo-1722422687593-dc62e03c9241?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1756483510818-060b42c7cecc?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1771654803890-a288916d4c9e?auto=format&fit=crop&w=800&q=80"
+    ],
+    colors: ["Emerald Green", "Forest Green", "Bottle Green"],
+    desc: "Exquisite royal emerald green Kanjivaram silk saree woven with gleaming golden zari motifs, temple borders, and rich festive pallu. Comes with unstitched contrast brocade blouse piece."
+  },
+  {
+    id: 15,
+    gender: "Women",
+    name: "Forest Green Banarasi Zari Saree",
+    category: "Banarasi",
+    price: 3899,
+    original: 5299,
+    stock: 11,
+    rating: 4.7,
+    reviews: 98,
+    fabric: "Pure Banarasi Handloom Katan Silk",
+    zari: "Intricate Floral Jaal Gold Zari",
+    origin: "Varanasi, Uttar Pradesh",
+    care: "Dry Clean Only. Store in muslin wrap.",
+    image: "https://images.unsplash.com/photo-1756483510818-060b42c7cecc?auto=format&fit=crop&w=800&q=80",
+    photos: [
+      "https://images.unsplash.com/photo-1756483510818-060b42c7cecc?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1742038106824-ae078f37b633?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1722422687593-dc62e03c9241?auto=format&fit=crop&w=800&q=80"
+    ],
+    colors: ["Forest Green", "Dark Emerald", "Olive Green"],
+    desc: "Regal forest green Banarasi saree featuring classic floral jaal gold zari weaving and heavy royal scalloped border. Perfect for festive ceremonies and evening weddings."
+  },
+  {
+    id: 16,
+    gender: "Women",
+    name: "Mehendi Green Organza Designer Saree",
+    category: "Designer",
+    price: 2999,
+    original: 4199,
+    stock: 14,
+    rating: 4.6,
+    reviews: 64,
+    fabric: "Featherlight Sheer Silk Organza",
+    zari: "Delicate Cutdana & Resham Embroidery",
+    origin: "Chanderi Modern Atelier",
+    care: "Gentle Dry Clean or Mild Steam Iron.",
+    image: "https://images.unsplash.com/photo-1745482037606-910f4f6a0bca?auto=format&fit=crop&w=800&q=80",
+    photos: [
+      "https://images.unsplash.com/photo-1745482037606-910f4f6a0bca?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1771958062901-f9a92b4c8fd4?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1771654803890-a288916d4c9e?auto=format&fit=crop&w=800&q=80"
+    ],
+    colors: ["Mehendi Green", "Mint Green", "Pista Green"],
+    desc: "Graceful mehendi and pista green sheer organza saree with delicate hand-embroidered floral borders. Ethereal fall and effortless luxury drape for daytime festivities and cocktail celebrations."
   }
 ];
 
