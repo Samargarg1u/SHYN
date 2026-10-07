@@ -504,6 +504,7 @@ export default function App() {
       {/* 8. Royal AI Stylist & Concierge */}
       <AiAssistant
         products={products}
+        orders={orders}
         onOpenDetails={(p) => setDetailModal({ isOpen: true, product: p, initialColor: null })}
         onAddToCart={handleAddToCart}
         onOpenOrders={() => setTrackingOpen(true)}
